@@ -9,6 +9,7 @@ export type {
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,
   LineageViewerEventName,
+  LineageViewerEventDetailMap,
   LineageViewerOptions,
 } from "./public-api/index.js";
 

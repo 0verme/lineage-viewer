@@ -20,6 +20,13 @@ export interface LineageSelectionChangeEventDetail {
   node: LineageNode | null;
   source: "pointer" | "api" | "data";
 }
+export interface LineageViewerEventDetailMap {
+  "lineage-ready": LineageReadyEventDetail;
+  "lineage-error": LineageDiagnosticEventDetail;
+  "lineage-warning": LineageDiagnosticEventDetail;
+  "lineage-node-click": LineageNodeClickEventDetail;
+  "lineage-selection-change": LineageSelectionChangeEventDetail;
+}
 export type LineageViewerEventName =
   | "lineage-ready"
   | "lineage-error"

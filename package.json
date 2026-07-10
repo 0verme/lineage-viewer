@@ -4,7 +4,9 @@
   "description": "A lightweight, framework-agnostic, embeddable lineage graph viewer.",
   "type": "module",
   "license": "Apache-2.0",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/define.js"
+  ],
   "main": "./dist/lineage-viewer.js",
   "module": "./dist/lineage-viewer.js",
   "types": "./dist/index.d.ts",
@@ -42,7 +44,8 @@
     "screenshot:gallery": "node scripts/screenshot-gallery.mjs",
     "screenshot:playground": "node scripts/screenshot-playground.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
-    "pack:check": "node scripts/pack-check.mjs"
+    "pack:check": "node scripts/pack-check.mjs",
+    "test:package": "node scripts/test-package.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

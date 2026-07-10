@@ -2,13 +2,13 @@
 
 > A lightweight, framework-agnostic, embeddable lineage graph viewer built with native Web Components and SVG.
 
-Project status: Alpha / active development
+Project status: pre-alpha / active development. Version `0.1.0` is not published to npm or deployed to Pages.
 
 ![Interactive Demo Gallery showing the multi-layer warehouse scenario](docs/assets/demo-gallery.png)
 
 ![Local JSON Playground with a live lineage preview](docs/assets/json-playground.png)
 
-The repository includes a public static Demo Gallery with seven synthetic scenarios. Live Demo: available after the Pages workflow is enabled and deployed.
+The repository includes a local static Demo Gallery with seven synthetic scenarios. A live demo will be available only after the Pages workflow is enabled and deployed.
 
 This repository is still pre-alpha. It validates, normalizes, and deterministically lays out lineage graph data in a native Web Component SVG preview.
 
@@ -47,7 +47,7 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
 
-Phase 1 through Phase 7 (local JSON Playground) are completed. Phase 8, documentation and direct integration, is current / next.
+Phase 1 through Phase 8 (package consumption and public API freeze) are completed.
 
 ## Technical principles
 
@@ -82,6 +82,7 @@ npm run preview:site # Preview the built Gallery
 npm run screenshot:gallery # Update the selected documentation screenshot
 npm run screenshot:playground # Update the Playground screenshot
 npm run pack:check   # Validate the npm package allowlist
+npm run test:package # Pack and test temporary vanilla and Vite TypeScript consumers
 ```
 
 ## Demo Gallery and Playground
@@ -90,12 +91,23 @@ The Gallery is a separate static site: its homepage is `/`, stable demo URLs use
 
 Playwright requires a compatible browser installation. For a fresh environment, install Chromium with `npx playwright install chromium` before running the E2E test.
 
-## Minimal browser usage
+## Install and use the package
+
+When a release is published, install it with:
+
+```sh
+npm install lineage-viewer
+```
+
+Until then, use a locally generated tarball (`npm pack`) in a consuming project. The package runs in modern browsers with Custom Elements, Shadow DOM, SVG, `ResizeObserver`, and ES modules; it is not a Node.js runtime library.
+
+### Vanilla JavaScript
 
 Import the auto-registration entry point, then use the standard element. Give the host a definite height in real applications.
 
 ```ts
 import "lineage-viewer/define";
+import type { LineageReadyEventDetail } from "lineage-viewer";
 
 const viewer = document.querySelector("lineage-viewer");
 viewer.data = { nodes: [...], edges: [...] };
@@ -110,6 +122,24 @@ lineage-viewer {
 ```
 
 The root entry exports `LineageViewerElement` and `defineLineageViewer` without registering the custom element. Reassign `data` or call `setData()` after mutating an input object; mutations to an already assigned object are not observed.
+
+### Vite + TypeScript
+
+```ts
+import "lineage-viewer/define";
+const viewer = document.querySelector("lineage-viewer");
+if (!viewer) throw new Error("Missing viewer");
+viewer.addEventListener("lineage-ready", (event) => {
+  if (isReadyEvent(event)) console.log(event.detail.nodeCount);
+});
+viewer.data = { schemaVersion: "1.0", nodes: [{ id: "orders", label: "Orders" }], edges: [] };
+
+function isReadyEvent(event: Event): event is CustomEvent<LineageReadyEventDetail> {
+  return event.type === "lineage-ready";
+}
+```
+
+See [Public API](docs/public-api.md) for all supported options, methods, events, diagnostics, and styling boundaries. The local Gallery runs via `npm run dev`; its stable routes are described in [Demo Gallery](docs/demo-gallery.md).
 
 ## License
 

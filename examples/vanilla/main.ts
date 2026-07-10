@@ -2,7 +2,8 @@ import "../../src/define.js";
 
 const viewer = document.querySelector("lineage-viewer");
 if (viewer instanceof HTMLElement && "data" in viewer) {
-  (viewer as import("../../src/index.js").LineageViewerElement).data = {
+  const lineageViewer = viewer as import("../../src/index.js").LineageViewerElement;
+  lineageViewer.data = {
     schemaVersion: "1.0",
     nodes: [
       {
@@ -40,4 +41,28 @@ if (viewer instanceof HTMLElement && "data" in viewer) {
       { source: "dwd_order", target: "dws_trade" },
     ],
   };
+  document
+    .querySelector<HTMLButtonElement>('[data-action="fit"]')
+    ?.addEventListener("click", () => lineageViewer.fitView());
+  document
+    .querySelector<HTMLButtonElement>('[data-action="reset"]')
+    ?.addEventListener("click", () => lineageViewer.resetView());
+  document
+    .querySelector<HTMLButtonElement>('[data-action="focus"]')
+    ?.addEventListener("click", () => lineageViewer.focusNode("dwd_order"));
+  document
+    .querySelector<HTMLButtonElement>('[data-action="clear"]')
+    ?.addEventListener("click", () => lineageViewer.clearSelection());
+  document
+    .querySelector<HTMLSelectElement>('[data-action="highlight"]')
+    ?.addEventListener("change", (event) => {
+      const value = (event.currentTarget as HTMLSelectElement).value;
+      if (
+        value === "connected" ||
+        value === "upstream" ||
+        value === "downstream" ||
+        value === "none"
+      )
+        lineageViewer.options = { highlightMode: value };
+    });
 }

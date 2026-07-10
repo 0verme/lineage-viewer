@@ -1,4 +1,5 @@
 import type { LineageDiagnostic } from "../schema/diagnostics.js";
+import type { LineageNode } from "../schema/types.js";
 
 export interface LineageReadyEventDetail {
   nodeCount: number;
@@ -9,4 +10,19 @@ export interface LineageDiagnosticEventDetail {
   diagnostics: readonly LineageDiagnostic[];
   hasErrors: boolean;
 }
-export type LineageViewerEventName = "lineage-ready" | "lineage-error" | "lineage-warning";
+export interface LineageNodeClickEventDetail {
+  nodeId: string;
+  node: LineageNode;
+}
+export interface LineageSelectionChangeEventDetail {
+  selectedNodeId: string | null;
+  previousSelectedNodeId: string | null;
+  node: LineageNode | null;
+  source: "pointer" | "api" | "data";
+}
+export type LineageViewerEventName =
+  | "lineage-ready"
+  | "lineage-error"
+  | "lineage-warning"
+  | "lineage-node-click"
+  | "lineage-selection-change";

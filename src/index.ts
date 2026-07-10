@@ -5,7 +5,9 @@ export { LineageViewerElement } from "./element/index.js";
 export { defineLineageViewer } from "./registration.js";
 export type {
   LineageDiagnosticEventDetail,
+  LineageNodeClickEventDetail,
   LineageReadyEventDetail,
+  LineageSelectionChangeEventDetail,
   LineageViewerEventName,
   LineageViewerOptions,
 } from "./public-api/index.js";

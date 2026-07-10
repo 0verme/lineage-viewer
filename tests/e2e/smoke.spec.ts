@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("the Phase 4 vanilla preview renders a layered lineage graph", async ({ page }) => {
+test("the Phase 5 vanilla preview renders interactive lineage", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   await page.goto("/examples/vanilla/");
 
-  await expect(page).toHaveTitle("lineage-viewer Phase 4 preview");
+  await expect(page).toHaveTitle("lineage-viewer Phase 5 preview");
   const viewer = page.locator("lineage-viewer");
   await expect(viewer).toBeVisible();
   await expect(viewer.locator("svg")).toHaveCount(1);
@@ -31,4 +31,16 @@ test("the Phase 4 vanilla preview renders a layered lineage graph", async ({ pag
       .evaluateAll((edges) => edges.every((edge) => !edge.getAttribute("d")?.includes("NaN"))),
   ).toBe(true);
   expect(errors).toEqual([]);
+  const initial = await viewer.locator(".viewport").getAttribute("transform");
+  await viewer.locator("svg").dispatchEvent("wheel", { deltaY: -100, clientX: 300, clientY: 200 });
+  await expect(viewer.locator(".viewport")).not.toHaveAttribute("transform", initial ?? "");
+  await viewer.locator('.node[data-node-id="dwd_order"]').click();
+  await expect(viewer.locator('.node[data-node-id="dwd_order"]')).toHaveAttribute(
+    "data-selected",
+    "",
+  );
+  await expect(viewer.locator('.node[data-node-id="ods_order"]')).toHaveAttribute(
+    "data-highlighted",
+    "",
+  );
 });

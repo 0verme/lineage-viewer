@@ -14,11 +14,11 @@ This repository is still pre-alpha. It validates, normalizes, and deterministica
 - `<lineage-viewer>` with an open Shadow DOM, SVG nodes, edges, arrowheads, basic light styling, and empty/invalid states.
 - Deterministic layered layout: SCC condensation, longest-path ranks, stable layer ordering with basic crossing reduction, disconnected block packing, and LR/RL/TB/BT routing.
 - `data`, `options`, diagnostics, lifecycle cleanup, and `lineage-ready`, `lineage-error`, and `lineage-warning` events.
+- Mouse-wheel anchored zoom, pointer pan, fit/reset/focus controls, ResizeObserver-aware viewport sizing, node selection, and upstream/downstream/connected highlights.
 - A minimal Vanilla preview in `examples/vanilla/`.
 
 ## Planned
 
-- Viewport controls, selection, highlighting, and the documented events.
 - Demo Gallery, JSON Playground, direct integration documentation, and later framework examples.
 
 The current preview uses deterministic layered lineage placement. It has fixed node dimensions and does not measure text, avoid obstacles, insert dummy nodes for long edges, provide full orthogonal routing, or guarantee minimum crossings. Cyclic SCCs use a deterministic same-layer mini-stack.
@@ -40,7 +40,7 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
 
-Phase 1 (product contract), Phase 2 (schema and graph normalization), Phase 3 (minimal Web Component and SVG renderer), and Phase 4 (deterministic layered layout) are completed. Phase 5 is current / next.
+Phase 1 (product contract), Phase 2 (schema and graph normalization), Phase 3 (minimal Web Component and SVG renderer), Phase 4 (deterministic layered layout), and Phase 5 (viewport and interactions) are completed. Phase 6 is current / next.
 
 ## Technical principles
 

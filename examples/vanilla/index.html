@@ -3,13 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>lineage-viewer Phase 4 preview</title>
+    <title>lineage-viewer Phase 5 preview</title>
   </head>
   <body>
     <main>
       <h1>Lineage Viewer</h1>
-      <p>Phase 3 preview placement</p>
-      <p>Layered lineage layout arrives in Phase 4</p>
+      <p>Viewport controls, selection, and lineage highlighting</p>
+      <div class="toolbar">
+        <button data-action="fit">Fit view</button><button data-action="reset">Reset view</button
+        ><button data-action="focus">Focus DWD_ORDER</button
+        ><button data-action="clear">Clear selection</button>
+        <label
+          >Highlight
+          <select data-action="highlight">
+            <option value="connected">Connected</option>
+            <option value="upstream">Upstream</option>
+            <option value="downstream">Downstream</option>
+            <option value="none">None</option>
+          </select></label
+        >
+      </div>
       <lineage-viewer></lineage-viewer>
     </main>
     <script type="module" src="./main.ts"></script>

@@ -1,11 +1,16 @@
 import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
+import type { InteractionState } from "../interactions/index.js";
+import type { ViewportTransform } from "../interactions/viewport-types.js";
 import type { RenderScene } from "./types.js";
 
 const svgNs = "http://www.w3.org/2000/svg";
 let rendererCount = 0;
 export class SvgRenderer {
   readonly svg: SVGSVGElement;
+  private readonly viewportGroup: SVGGElement;
   private readonly sceneGroup: SVGGElement;
+  private viewportWidth = 0;
+  private viewportHeight = 0;
   private readonly markerId = `lineage-viewer-arrow-${++rendererCount}`;
   private destroyed = false;
   constructor(host: ShadowRoot) {
@@ -28,15 +33,17 @@ export class SvgRenderer {
     arrow.setAttribute("class", "arrow");
     marker.append(arrow);
     defs.append(marker);
+    this.viewportGroup = create("g");
+    this.viewportGroup.setAttribute("class", "viewport");
     this.sceneGroup = create("g");
     this.sceneGroup.setAttribute("class", "scene");
-    this.svg.append(defs, this.sceneGroup);
+    this.viewportGroup.append(this.sceneGroup);
+    this.svg.append(defs, this.viewportGroup);
     host.append(this.svg);
   }
   render(scene: RenderScene, options: ResolvedLineageViewerOptions): void {
     if (this.destroyed) return;
     this.clear();
-    this.svg.setAttribute("viewBox", `0 0 ${scene.width} ${scene.height}`);
     const edges = create("g");
     edges.setAttribute("class", "edges");
     const nodes = create("g");
@@ -94,12 +101,48 @@ export class SvgRenderer {
   clear(): void {
     this.sceneGroup.replaceChildren();
   }
+  setViewportSize(width: number, height: number): void {
+    if (
+      width > 0 &&
+      height > 0 &&
+      Number.isFinite(width) &&
+      Number.isFinite(height) &&
+      (width !== this.viewportWidth || height !== this.viewportHeight)
+    ) {
+      this.viewportWidth = width;
+      this.viewportHeight = height;
+      this.svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    }
+  }
+  setViewportTransform(transform: ViewportTransform): void {
+    this.viewportGroup.setAttribute(
+      "transform",
+      `translate(${transform.translateX} ${transform.translateY}) scale(${transform.scale})`,
+    );
+  }
+  setInteractionState(state: InteractionState): void {
+    for (const node of this.sceneGroup.querySelectorAll<SVGGElement>(".node")) {
+      const id = node.dataset["nodeId"];
+      setFlag(node, "selected", id === state.selectedNodeId);
+      setFlag(node, "highlighted", id !== undefined && state.highlightedNodeIds.has(id));
+      setFlag(node, "dimmed", id !== undefined && state.dimmedNodeIds.has(id));
+    }
+    for (const edge of this.sceneGroup.querySelectorAll<SVGPathElement>(".edge")) {
+      const key = edge.dataset["edgeKey"];
+      setFlag(edge, "highlighted", key !== undefined && state.highlightedEdgeKeys.has(key));
+      setFlag(edge, "dimmed", key !== undefined && state.dimmedEdgeKeys.has(key));
+    }
+  }
   destroy(): void {
     if (this.destroyed) return;
     this.clear();
     this.svg.remove();
     this.destroyed = true;
   }
+}
+function setFlag(element: Element, name: string, active: boolean): void {
+  if (active) element.setAttribute(`data-${name}`, "");
+  else element.removeAttribute(`data-${name}`);
 }
 function create<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] {
   return document.createElementNS(svgNs, name);

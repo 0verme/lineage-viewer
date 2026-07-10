@@ -8,8 +8,8 @@ No phase has a release-date commitment.
 | Completed      | Phase 2: Schema and graph normalization            |
 | Completed      | Phase 3: Minimal Web Component and SVG renderer    |
 | Completed      | Phase 4: Deterministic layered layout              |
-| Current / Next | Phase 5: Viewport, selection, highlight and events |
-| Planned        | Phase 6: Demo Gallery                              |
+| Completed      | Phase 5: Viewport, selection, highlight and events |
+| Current / Next | Phase 6: Demo Gallery                              |
 | Planned        | Phase 7: JSON Playground                           |
 | Planned        | Phase 8: Documentation and direct integration      |
 | Planned        | Phase 9: React and Vue examples                    |

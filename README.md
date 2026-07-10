@@ -4,26 +4,28 @@
 
 Project status: Pre-alpha
 
-This repository is still pre-alpha. It now validates and normalizes lineage graph data, but it is not yet a usable graph viewer and cannot render a lineage graph.
+This repository is still pre-alpha. It validates and normalizes lineage graph data and provides a minimal native Web Component SVG preview.
 
 ## Implemented
 
 - TypeScript, Vite, Vitest, Playwright, ESLint, Prettier, packaging, and CI baselines.
 - TypeScript schema types, runtime validation, stable diagnostics, and strict/lenient normalization.
 - Duplicate-node and duplicate-edge handling, self-loop and missing-endpoint handling, adjacency indexes, cycle detection, and upstream/downstream traversal.
+- `<lineage-viewer>` with an open Shadow DOM, SVG nodes, edges, arrowheads, basic light styling, and empty/invalid states.
+- `data`, `options`, diagnostics, lifecycle cleanup, and `lineage-ready`, `lineage-error`, and `lineage-warning` events.
+- A minimal Vanilla preview in `examples/vanilla/`.
 
 ## In progress
 
-- Phase 3 is next: a minimal Web Component and SVG renderer.
+- Phase 4: deterministic layered layout.
 
 ## Planned
 
-- A native Web Component and SVG renderer.
-- Deterministic layered layout; the first implementation may support only `LR`.
+- Deterministic layered layout.
 - Viewport controls, selection, highlighting, and the documented events.
 - Demo Gallery, JSON Playground, direct integration documentation, and later framework examples.
 
-SVG rendering, deterministic layout, zoom/pan, node highlighting, export, keyboard accessibility, iframe, Streamlit, and React/Vue integration are planned capabilities, not implemented capabilities.
+The current preview uses **provisional linear placement**, not a data-lineage layout: normalized nodes are placed in stable order in one row or column. Deterministic layered layout, zoom/pan, node selection and highlighting, export, keyboard accessibility, iframe, Streamlit, and React/Vue integration are planned capabilities, not implemented capabilities.
 
 ### Future showcase entry points
 
@@ -42,7 +44,7 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
 
-Phase 1 (product contract) and Phase 2 (schema and graph normalization) are completed.
+Phase 1 (product contract), Phase 2 (schema and graph normalization), and Phase 3 (minimal Web Component and SVG renderer) are completed. Phase 4 is current / next.
 
 ## Technical principles
 
@@ -76,6 +78,27 @@ npm run pack:check   # Validate the npm package allowlist
 ```
 
 Playwright requires a compatible browser installation. For a fresh environment, install Chromium with `npx playwright install chromium` before running the E2E test.
+
+## Minimal browser usage
+
+Import the auto-registration entry point, then use the standard element. Give the host a definite height in real applications.
+
+```ts
+import "lineage-viewer/define";
+
+const viewer = document.querySelector("lineage-viewer");
+viewer.data = { nodes: [...], edges: [...] };
+```
+
+```css
+lineage-viewer {
+  display: block;
+  width: 100%;
+  height: 600px;
+}
+```
+
+The root entry exports `LineageViewerElement` and `defineLineageViewer` without registering the custom element. Reassign `data` or call `setData()` after mutating an input object; mutations to an already assigned object are not observed.
 
 ## License
 

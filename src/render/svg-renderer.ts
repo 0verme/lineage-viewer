@@ -1,0 +1,105 @@
+import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
+import type { RenderScene } from "./types.js";
+
+const svgNs = "http://www.w3.org/2000/svg";
+let rendererCount = 0;
+export class SvgRenderer {
+  readonly svg: SVGSVGElement;
+  private readonly sceneGroup: SVGGElement;
+  private readonly markerId = `lineage-viewer-arrow-${++rendererCount}`;
+  private destroyed = false;
+  constructor(host: ShadowRoot) {
+    this.svg = create("svg");
+    this.svg.setAttribute("part", "svg");
+    this.svg.setAttribute("width", "100%");
+    this.svg.setAttribute("height", "100%");
+    this.svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    const defs = create("defs");
+    const marker = create("marker");
+    marker.setAttribute("id", this.markerId);
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "9");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "7");
+    marker.setAttribute("markerHeight", "7");
+    marker.setAttribute("orient", "auto-start-reverse");
+    const arrow = create("path");
+    arrow.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    arrow.setAttribute("class", "arrow");
+    marker.append(arrow);
+    defs.append(marker);
+    this.sceneGroup = create("g");
+    this.sceneGroup.setAttribute("class", "scene");
+    this.svg.append(defs, this.sceneGroup);
+    host.append(this.svg);
+  }
+  render(scene: RenderScene, options: ResolvedLineageViewerOptions): void {
+    if (this.destroyed) return;
+    this.clear();
+    this.svg.setAttribute("viewBox", `0 0 ${scene.width} ${scene.height}`);
+    const edges = create("g");
+    edges.setAttribute("class", "edges");
+    const nodes = create("g");
+    nodes.setAttribute("class", "nodes");
+    for (const item of scene.edges) {
+      const path = create("path");
+      path.setAttribute("class", "edge");
+      path.setAttribute("d", item.path);
+      path.setAttribute("marker-end", `url(#${this.markerId})`);
+      path.setAttribute("data-edge-key", item.key);
+      path.setAttribute("data-edge-source", item.edge.source);
+      path.setAttribute("data-edge-target", item.edge.target);
+      edges.append(path);
+      if (options.showEdgeLabels && item.edge.label) {
+        const label = create("text");
+        label.setAttribute("class", "edge-label");
+        label.setAttribute("x", "8");
+        label.setAttribute("y", "-6");
+        label.textContent = item.edge.label;
+        const group = create("g");
+        group.append(label);
+        edges.append(group);
+      }
+    }
+    for (const item of scene.nodes) {
+      const group = create("g");
+      group.setAttribute("class", "node");
+      group.setAttribute("transform", `translate(${item.x} ${item.y})`);
+      group.setAttribute("data-node-id", item.id);
+      if (item.node.type) group.setAttribute("data-node-type", item.node.type);
+      if (item.node.status) group.setAttribute("data-node-status", item.node.status);
+      const rect = create("rect");
+      rect.setAttribute("width", String(item.width));
+      rect.setAttribute("height", String(item.height));
+      rect.setAttribute("rx", "8");
+      const title = create("text");
+      title.setAttribute("class", "node-title");
+      title.setAttribute("x", "16");
+      title.setAttribute("y", "30");
+      title.textContent = item.node.label;
+      group.append(rect, title);
+      if (item.node.subtitle) {
+        const subtitle = create("text");
+        subtitle.setAttribute("class", "node-subtitle");
+        subtitle.setAttribute("x", "16");
+        subtitle.setAttribute("y", "52");
+        subtitle.textContent = item.node.subtitle;
+        group.append(subtitle);
+      }
+      nodes.append(group);
+    }
+    this.sceneGroup.append(edges, nodes);
+  }
+  clear(): void {
+    this.sceneGroup.replaceChildren();
+  }
+  destroy(): void {
+    if (this.destroyed) return;
+    this.clear();
+    this.svg.remove();
+    this.destroyed = true;
+  }
+}
+function create<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] {
+  return document.createElementNS(svgNs, name);
+}

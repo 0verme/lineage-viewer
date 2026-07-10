@@ -6,6 +6,13 @@ if (viewer instanceof HTMLElement && "data" in viewer) {
     schemaVersion: "1.0",
     nodes: [
       {
+        id: "ods_item",
+        label: "ODS_ITEM",
+        subtitle: "Source table",
+        layer: "ODS",
+        type: "table",
+      },
+      {
         id: "ods_order",
         label: "ODS_ORDER",
         subtitle: "Source table",
@@ -29,6 +36,7 @@ if (viewer instanceof HTMLElement && "data" in viewer) {
     ],
     edges: [
       { source: "ods_order", target: "dwd_order" },
+      { source: "ods_item", target: "dwd_order" },
       { source: "dwd_order", target: "dws_trade" },
     ],
   };

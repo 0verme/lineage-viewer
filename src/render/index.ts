@@ -1,2 +1,2 @@
-export { createBasicRenderScene } from "./basic-scene.js";
+export { createLayeredRenderScene } from "./create-render-scene.js";
 export { SvgRenderer } from "./svg-renderer.js";

@@ -66,6 +66,7 @@ export class SvgRenderer {
       group.setAttribute("class", "node");
       group.setAttribute("transform", `translate(${item.x} ${item.y})`);
       group.setAttribute("data-node-id", item.id);
+      if (item.rank !== undefined) group.setAttribute("data-node-layer", String(item.rank));
       if (item.node.type) group.setAttribute("data-node-type", item.node.type);
       if (item.node.status) group.setAttribute("data-node-status", item.node.status);
       const rect = create("rect");

@@ -4,7 +4,7 @@
 
 Project status: Pre-alpha
 
-This repository is still pre-alpha. It validates and normalizes lineage graph data and provides a minimal native Web Component SVG preview.
+This repository is still pre-alpha. It validates, normalizes, and deterministically lays out lineage graph data in a native Web Component SVG preview.
 
 ## Implemented
 
@@ -12,20 +12,16 @@ This repository is still pre-alpha. It validates and normalizes lineage graph da
 - TypeScript schema types, runtime validation, stable diagnostics, and strict/lenient normalization.
 - Duplicate-node and duplicate-edge handling, self-loop and missing-endpoint handling, adjacency indexes, cycle detection, and upstream/downstream traversal.
 - `<lineage-viewer>` with an open Shadow DOM, SVG nodes, edges, arrowheads, basic light styling, and empty/invalid states.
+- Deterministic layered layout: SCC condensation, longest-path ranks, stable layer ordering with basic crossing reduction, disconnected block packing, and LR/RL/TB/BT routing.
 - `data`, `options`, diagnostics, lifecycle cleanup, and `lineage-ready`, `lineage-error`, and `lineage-warning` events.
 - A minimal Vanilla preview in `examples/vanilla/`.
 
-## In progress
-
-- Phase 4: deterministic layered layout.
-
 ## Planned
 
-- Deterministic layered layout.
 - Viewport controls, selection, highlighting, and the documented events.
 - Demo Gallery, JSON Playground, direct integration documentation, and later framework examples.
 
-The current preview uses **provisional linear placement**, not a data-lineage layout: normalized nodes are placed in stable order in one row or column. Deterministic layered layout, zoom/pan, node selection and highlighting, export, keyboard accessibility, iframe, Streamlit, and React/Vue integration are planned capabilities, not implemented capabilities.
+The current preview uses deterministic layered lineage placement. It has fixed node dimensions and does not measure text, avoid obstacles, insert dummy nodes for long edges, provide full orthogonal routing, or guarantee minimum crossings. Cyclic SCCs use a deterministic same-layer mini-stack.
 
 ### Future showcase entry points
 
@@ -44,7 +40,7 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
 
-Phase 1 (product contract), Phase 2 (schema and graph normalization), and Phase 3 (minimal Web Component and SVG renderer) are completed. Phase 4 is current / next.
+Phase 1 (product contract), Phase 2 (schema and graph normalization), Phase 3 (minimal Web Component and SVG renderer), and Phase 4 (deterministic layered layout) are completed. Phase 5 is current / next.
 
 ## Technical principles
 

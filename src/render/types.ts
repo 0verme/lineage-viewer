@@ -7,6 +7,8 @@ export interface RenderNode {
   readonly width: number;
   readonly height: number;
   readonly node: NormalizedLineageNode;
+  readonly rank?: number;
+  readonly componentKey?: string;
 }
 export interface RenderEdge {
   readonly key: string;

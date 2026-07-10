@@ -42,7 +42,7 @@ getDiagnostics();
 destroy();
 ```
 
-`data` is normalized using the Phase 2 runtime validator. `null` clears the current data. `options` is a patch over resolved defaults; invalid numeric dimensions are ignored. Changing `validationMode` or `showSelfLoops` re-normalizes current data. The renderer supports provisional linear `LR`, `RL`, `TB`, and `BT` placement, but this is not deterministic layered layout.
+`data` is normalized using the Phase 2 runtime validator. `null` clears the current data. `options` is a patch over resolved defaults; invalid numeric dimensions are ignored. Changing `validationMode` or `showSelfLoops` re-normalizes current data. `direction`, `nodeWidth`, `nodeHeight`, `layerGap`, and `nodeGap` recalculate the internal deterministic layered scene without changing the public API.
 
 `getDiagnostics()` returns a snapshot. `destroy()` is idempotent and permanently disables the instance. Complex objects are passed through JavaScript properties or methods, not large JSON HTML attributes.
 

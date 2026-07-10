@@ -1,6 +1,6 @@
 import { normalizeLineageGraphData, type NormalizedLineageGraph } from "../graph/index.js";
 import type { LineageDiagnostic, LineageEdge, LineageGraphData } from "../schema/index.js";
-import { createBasicRenderScene, SvgRenderer } from "../render/index.js";
+import { createLayeredRenderScene, SvgRenderer } from "../render/index.js";
 import {
   defaultLineageViewerOptions,
   resolveOptions,
@@ -138,7 +138,7 @@ export class LineageViewerElement extends ElementBase {
     stateNode?.remove();
     if (this.state === "rendered" && this.graph !== null) {
       this.renderer.render(
-        createBasicRenderScene(this.graph, this.resolvedOptions),
+        createLayeredRenderScene(this.graph, this.resolvedOptions),
         this.resolvedOptions,
       );
       return;

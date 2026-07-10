@@ -4,6 +4,8 @@
 
 Project status: pre-alpha / active development. Version `0.1.0` is not published to npm or deployed to Pages.
 
+[![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) npm publishing, GitHub Releases, and Pages deployment are prepared but become available only after the first release and deployment. Expected Gallery URL: [0verme.github.io/lineage-viewer](https://0verme.github.io/lineage-viewer/); expected Playground URL: [playground.html](https://0verme.github.io/lineage-viewer/playground.html). See the [release guide](docs/releasing.md) and [CHANGELOG](CHANGELOG.md).
+
 ![Interactive Demo Gallery showing the multi-layer warehouse scenario](docs/assets/demo-gallery.png)
 
 ![Local JSON Playground with a live lineage preview](docs/assets/json-playground.png)

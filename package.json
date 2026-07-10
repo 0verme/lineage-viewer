@@ -45,7 +45,9 @@
     "screenshot:playground": "node scripts/screenshot-playground.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "pack:check": "node scripts/pack-check.mjs",
-    "test:package": "node scripts/test-package.mjs"
+    "test:package": "node scripts/test-package.mjs",
+    "test:release": "vitest run tests/unit/release.test.ts",
+    "test:workflows": "node scripts/validate-workflows.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

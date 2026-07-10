@@ -1,0 +1,94 @@
+name: Publish npm package and create GitHub Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+      - run: npm ci
+      - name: Validate tag and package version
+        if: github.event_name == 'push'
+        run: node scripts/release/validate-version.mjs "${{ github.ref_name }}"
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:release
+      - run: npm run test:workflows
+      - run: npm run build
+      - run: npm run build:site
+      - run: npm run test:package
+      - run: npm run pack:check
+      - run: npm pack --dry-run
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-playwright-failure-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
+
+  publish:
+    if: github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: node scripts/release/validate-version.mjs "${{ github.ref_name }}"
+      - run: npm run build
+      - run: npm run pack:check
+      - run: npm pack --dry-run
+      - run: npm publish --dry-run
+      - id: dist-tag
+        run: echo "value=$(node scripts/release/resolve-dist-tag.mjs \"${{ github.ref_name }}\")" >> "$GITHUB_OUTPUT"
+      - run: npm publish --provenance --tag "${{ steps.dist-tag.outputs.value }}"
+
+  github-release:
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+      - run: node scripts/release/extract-changelog.mjs "${{ github.ref_name }}" > RELEASE_NOTES.md
+      - run: gh release create "${{ github.ref_name }}" --title "${{ github.ref_name }}" --notes-file RELEASE_NOTES.md ${{ contains(github.ref_name, '-') && '--prerelease' || '' }}

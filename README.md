@@ -1,22 +1,46 @@
 # lineage-viewer
 
-A lightweight, framework-agnostic, embeddable lineage graph viewer.
+> A lightweight, framework-agnostic, embeddable lineage graph viewer built with native Web Components and SVG.
 
-## Status
+Project status: Pre-alpha
 
-This project is in early development. The repository currently provides only the TypeScript build, test, formatting, linting, packaging, and continuous-integration baseline. Graph rendering and the public viewer API are not implemented yet.
+This repository is still at an early, contract-definition stage. It is not yet a usable graph viewer.
 
-## Planned capabilities
+## Implemented
 
-- A native Web Component backed by SVG and Shadow DOM
-- A versioned, general-purpose lineage JSON schema
-- Deterministic graph layout and keyboard-accessible interaction
-- Theme customization through CSS custom properties
-- Secure iframe embedding
-- Browser-side SVG and PNG export
-- Optional adapters for legacy JSON formats
+- TypeScript, Vite, Vitest, Playwright, ESLint, Prettier, packaging, and CI baselines.
+- Side-effect-free package entry points that currently expose only `packageVersion`.
 
-These items describe the roadmap, not the current release.
+## In progress
+
+- Phase 1: the minimal product contract for data, public API, diagnostics, events, and roadmap.
+
+## Planned
+
+- Schema validation and graph normalization.
+- A native Web Component and SVG renderer.
+- Deterministic layered layout; the first implementation may support only `LR`.
+- Viewport controls, selection, highlighting, and the documented events.
+- Demo Gallery, JSON Playground, direct integration documentation, and later framework examples.
+
+SVG rendering, deterministic layout, zoom/pan, node highlighting, export, keyboard accessibility, iframe, Streamlit, and React/Vue integration are planned capabilities, not implemented capabilities.
+
+### Future showcase entry points
+
+**Demo Gallery** will present prebuilt, representative lineage scenarios so people can quickly understand the viewer's visual and interaction capabilities.
+
+**JSON Playground** will accept or import lineage JSON for validation, diagnostics, and an interactive graph preview. Its primary output is an interactive lineage graph; SVG and PNG are export capabilities, not its core output. It will not provide login, cloud saving, collaboration, or project management.
+
+## Non-goals
+
+lineage-viewer is a viewer, not a lineage-extraction or data-governance platform. It does not parse SQL, discover lineage automatically, scan databases or schedulers, store metadata, manage access or users, provide a general graph editor, create or drag-connect nodes, or replace Apache Atlas or DataHub.
+
+## Product contract
+
+- [Product scope](docs/product-scope.md)
+- [Data schema and diagnostics](docs/data-schema.md)
+- [Public API and events](docs/public-api.md)
+- [Roadmap](docs/roadmap.md)
 
 ## Technical principles
 

@@ -2,20 +2,20 @@
 
 No phase has a release-date commitment.
 
-| Status   | Phase                                              |
-| -------- | -------------------------------------------------- |
-| Current  | Phase 1: Product contract                          |
-| Planned  | Phase 2: Schema and graph normalization            |
-| Planned  | Phase 3: Minimal Web Component and SVG renderer    |
-| Planned  | Phase 4: Deterministic layered layout              |
-| Planned  | Phase 5: Viewport, selection, highlight and events |
-| Planned  | Phase 6: Demo Gallery                              |
-| Planned  | Phase 7: JSON Playground                           |
-| Planned  | Phase 8: Documentation and direct integration      |
-| Planned  | Phase 9: React and Vue examples                    |
-| Deferred | Phase 10: iframe integration                       |
-| Deferred | Phase 11: Streamlit component                      |
-| Deferred | Phase 12: PyWebIO recipe                           |
+| Status         | Phase                                              |
+| -------------- | -------------------------------------------------- |
+| Completed      | Phase 1: Product contract                          |
+| Completed      | Phase 2: Schema and graph normalization            |
+| Current / Next | Phase 3: Minimal Web Component and SVG renderer    |
+| Planned        | Phase 4: Deterministic layered layout              |
+| Planned        | Phase 5: Viewport, selection, highlight and events |
+| Planned        | Phase 6: Demo Gallery                              |
+| Planned        | Phase 7: JSON Playground                           |
+| Planned        | Phase 8: Documentation and direct integration      |
+| Planned        | Phase 9: React and Vue examples                    |
+| Deferred       | Phase 10: iframe integration                       |
+| Deferred       | Phase 11: Streamlit component                      |
+| Deferred       | Phase 12: PyWebIO recipe                           |
 
 ## Status definitions
 

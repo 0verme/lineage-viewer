@@ -4,20 +4,20 @@
 
 Project status: Pre-alpha
 
-This repository is still at an early, contract-definition stage. It is not yet a usable graph viewer.
+This repository is still pre-alpha. It now validates and normalizes lineage graph data, but it is not yet a usable graph viewer and cannot render a lineage graph.
 
 ## Implemented
 
 - TypeScript, Vite, Vitest, Playwright, ESLint, Prettier, packaging, and CI baselines.
-- Side-effect-free package entry points that currently expose only `packageVersion`.
+- TypeScript schema types, runtime validation, stable diagnostics, and strict/lenient normalization.
+- Duplicate-node and duplicate-edge handling, self-loop and missing-endpoint handling, adjacency indexes, cycle detection, and upstream/downstream traversal.
 
 ## In progress
 
-- Phase 1: the minimal product contract for data, public API, diagnostics, events, and roadmap.
+- Phase 3 is next: a minimal Web Component and SVG renderer.
 
 ## Planned
 
-- Schema validation and graph normalization.
 - A native Web Component and SVG renderer.
 - Deterministic layered layout; the first implementation may support only `LR`.
 - Viewport controls, selection, highlighting, and the documented events.
@@ -41,6 +41,8 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Data schema and diagnostics](docs/data-schema.md)
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
+
+Phase 1 (product contract) and Phase 2 (schema and graph normalization) are completed.
 
 ## Technical principles
 

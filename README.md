@@ -2,7 +2,11 @@
 
 > A lightweight, framework-agnostic, embeddable lineage graph viewer built with native Web Components and SVG.
 
-Project status: Pre-alpha
+Project status: Alpha / active development
+
+![Interactive Demo Gallery showing the multi-layer warehouse scenario](docs/assets/demo-gallery.png)
+
+The repository includes a public static Demo Gallery with seven synthetic scenarios. Live Demo: available after the Pages workflow is enabled and deployed.
 
 This repository is still pre-alpha. It validates, normalizes, and deterministically lays out lineage graph data in a native Web Component SVG preview.
 
@@ -16,10 +20,11 @@ This repository is still pre-alpha. It validates, normalizes, and deterministica
 - `data`, `options`, diagnostics, lifecycle cleanup, and `lineage-ready`, `lineage-error`, and `lineage-warning` events.
 - Mouse-wheel anchored zoom, pointer pan, fit/reset/focus controls, ResizeObserver-aware viewport sizing, node selection, and upstream/downstream/connected highlights.
 - A minimal Vanilla preview in `examples/vanilla/`.
+- Demo Gallery, multi-scenario examples, interactive demo controls, a read-only JSON viewer, diagnostics/event inspection, GitHub Pages build, and a public showcase screenshot.
 
 ## Planned
 
-- Demo Gallery, JSON Playground, direct integration documentation, and later framework examples.
+- Editable JSON Playground, local JSON import, direct integration documentation, and later framework examples.
 
 The current preview uses deterministic layered lineage placement. It has fixed node dimensions and does not measure text, avoid obstacles, insert dummy nodes for long edges, provide full orthogonal routing, or guarantee minimum crossings. Cyclic SCCs use a deterministic same-layer mini-stack.
 
@@ -40,7 +45,7 @@ lineage-viewer is a viewer, not a lineage-extraction or data-governance platform
 - [Public API and events](docs/public-api.md)
 - [Roadmap](docs/roadmap.md)
 
-Phase 1 (product contract), Phase 2 (schema and graph normalization), Phase 3 (minimal Web Component and SVG renderer), Phase 4 (deterministic layered layout), and Phase 5 (viewport and interactions) are completed. Phase 6 is current / next.
+Phase 1 (product contract), Phase 2 (schema and graph normalization), Phase 3 (minimal Web Component and SVG renderer), Phase 4 (deterministic layered layout), Phase 5 (viewport and interactions), and Phase 6 (Demo Gallery) are completed. Phase 7 is current / next.
 
 ## Technical principles
 
@@ -70,8 +75,15 @@ npm run format:check # Check formatting
 npm test             # Run unit tests
 npm run test:e2e     # Run the browser smoke test
 npm run build        # Build ESM and declarations into dist
+npm run build:site   # Build the static Gallery into site-dist
+npm run preview:site # Preview the built Gallery
+npm run screenshot:gallery # Update the selected documentation screenshot
 npm run pack:check   # Validate the npm package allowlist
 ```
+
+## Demo Gallery
+
+The Gallery is a separate static site: its homepage is `/`, and stable demo URLs use `/demo.html?id=<demo-id>`. It intentionally provides read-only JSON only; editable JSON and local file import remain Phase 7 work. See [Demo Gallery](docs/demo-gallery.md) for local development and GitHub Pages deployment details.
 
 Playwright requires a compatible browser installation. For a fresh environment, install Chromium with `npx playwright install chromium` before running the E2E test.
 

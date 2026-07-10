@@ -30,6 +30,8 @@
     "dev": "vite",
     "clean": "node scripts/clean.mjs",
     "build": "npm run clean && vite build && tsc -p tsconfig.build.json",
+    "build:site": "vite build --config vite.site.config.ts",
+    "preview:site": "vite preview --config vite.site.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -37,6 +39,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "screenshot:gallery": "node scripts/screenshot-gallery.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "pack:check": "node scripts/pack-check.mjs"
   },

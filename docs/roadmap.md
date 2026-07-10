@@ -9,8 +9,8 @@ No phase has a release-date commitment.
 | Completed      | Phase 3: Minimal Web Component and SVG renderer    |
 | Completed      | Phase 4: Deterministic layered layout              |
 | Completed      | Phase 5: Viewport, selection, highlight and events |
-| Current / Next | Phase 6: Demo Gallery                              |
-| Planned        | Phase 7: JSON Playground                           |
+| Completed      | Phase 6: Demo Gallery                              |
+| Current / Next | Phase 7: JSON Playground                           |
 | Planned        | Phase 8: Documentation and direct integration      |
 | Planned        | Phase 9: React and Vue examples                    |
 | Deferred       | Phase 10: iframe integration                       |

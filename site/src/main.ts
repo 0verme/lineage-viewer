@@ -24,6 +24,7 @@ actions.className = "actions";
 append(
   actions,
   link("#demos", "Explore demos", "primary"),
+  link("./playground.html", "Try your JSON"),
   link("#quick-start", "View quick start"),
 );
 const viewerCard = element("div");
@@ -86,6 +87,7 @@ for (const demo of demos) {
     counts,
     tags,
     link(`./demo.html?id=${encodeURIComponent(demo.id)}`, "Open demo", "primary"),
+    link(`./playground.html?demo=${encodeURIComponent(demo.id)}`, "Open in Playground"),
   );
   galleryGrid.append(card);
 }

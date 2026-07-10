@@ -36,7 +36,15 @@ function renderDemo(current: NonNullable<typeof demo>): void {
   const shell = element("div");
   shell.className = "shell";
   const header = element("header");
-  append(header, link("./", "← Back to gallery", "brand"), element("span", current.title));
+  append(
+    header,
+    link("./", "← Back to gallery", "brand"),
+    link(
+      `./playground.html?demo=${encodeURIComponent(current.id)}`,
+      "Edit this JSON in Playground",
+    ),
+    element("span", current.title),
+  );
   const heading = element("section");
   append(
     heading,

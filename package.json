@@ -40,6 +40,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "screenshot:gallery": "node scripts/screenshot-gallery.mjs",
+    "screenshot:playground": "node scripts/screenshot-playground.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "pack:check": "node scripts/pack-check.mjs"
   },

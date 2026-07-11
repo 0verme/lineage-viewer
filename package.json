@@ -41,6 +41,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:site": "playwright test --config playwright.site.config.ts",
     "screenshot:gallery": "node scripts/screenshot-gallery.mjs",
     "screenshot:playground": "node scripts/screenshot-playground.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
@@ -62,6 +63,6 @@
     "vitest": "^4.1.10"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   }
 }

@@ -262,7 +262,8 @@ export const demos: readonly LineageDemoDefinition[] = [
 ];
 
 export function findDemo(id: string | null): LineageDemoDefinition | null {
-  return demos.find((demo) => demo.id === id) ?? null;
+  const canonicalId = id === "basic" ? "simple-pipeline" : id;
+  return demos.find((demo) => demo.id === canonicalId) ?? null;
 }
 export function cloneGraph(graph: LineageGraphData): LineageGraphData {
   return JSON.parse(JSON.stringify(graph)) as LineageGraphData;

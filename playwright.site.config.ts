@@ -2,13 +2,13 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testIgnore: "site-production.spec.ts",
+  testMatch: "site-production.spec.ts",
   fullyParallel: true,
   forbidOnly: Boolean(process.env["CI"]),
   retries: process.env["CI"] ? 2 : 0,
   reporter: process.env["CI"] ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: "http://127.0.0.1:4174",
     trace: "on-first-retry",
   },
   projects: [
@@ -18,8 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1 --port 4173",
-    url: "http://127.0.0.1:4173/tests/e2e/fixtures/smoke.html",
+    command: "npm run build:site && npm run preview:site -- --host 127.0.0.1 --port 4174",
+    url: "http://127.0.0.1:4174/",
     reuseExistingServer: !process.env["CI"],
   },
 });

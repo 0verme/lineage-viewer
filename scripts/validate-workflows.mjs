@@ -49,6 +49,7 @@ for (const script of [
   "typecheck",
   "test",
   "test:e2e",
+  "test:e2e:site",
   "build",
   "build:site",
   "test:package",
@@ -57,6 +58,9 @@ for (const script of [
 ]) {
   if (!packageJson.scripts[script]) throw new Error(`Missing package script ${script}.`);
 }
+
+requireText(ci, "npm run test:e2e:site", "CI");
+requireText(release, "npm run test:e2e:site", "release workflow");
 
 for (const source of [ci, cloudflare, release]) {
   if (/([A-Za-z]:\\\\|\.reference\/|NODE_AUTH_TOKEN|npm_[A-Za-z0-9]{20,})/u.test(source)) {

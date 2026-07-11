@@ -1,9 +1,11 @@
-import "lineage-viewer/define";
+import { defineLineageViewer } from "lineage-viewer";
 
 import { demos, cloneGraph } from "./demo-registry.js";
 import { append, element, installStyles, link } from "./dom.js";
 import { styles } from "./styles.js";
 import type { LineageViewerElement } from "lineage-viewer";
+
+defineLineageViewer();
 
 installStyles(styles);
 const app = document.querySelector("#app");

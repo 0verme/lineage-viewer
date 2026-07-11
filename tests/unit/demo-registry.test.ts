@@ -22,6 +22,7 @@ describe("demo registry", () => {
       ).toBe(true);
     }
     expect(findDemo("unknown")).toBeNull();
+    expect(findDemo("basic")?.id).toBe("simple-pipeline");
     expect(findDemo("cycles")?.viewerOptions?.showSelfLoops).toBe(true);
     expect(findDemo("warehouse-layers")?.graph.nodes.length).toBeGreaterThanOrEqual(20);
   });

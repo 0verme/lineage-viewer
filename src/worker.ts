@@ -1,5 +1,9 @@
+interface AssetFetcher {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+}
+
 interface WorkerEnv {
-  ASSETS: Fetcher;
+  ASSETS: AssetFetcher;
 }
 
 export default {

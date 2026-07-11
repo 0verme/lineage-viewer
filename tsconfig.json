@@ -5,6 +5,12 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "lineage-viewer": ["./src/index.ts"],
+      "lineage-viewer/define": ["./src/define.ts"]
+    },
     "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,

@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 22.13.0
           cache: npm
       - name: Install dependencies
         run: npm ci
@@ -41,6 +41,8 @@ jobs:
         run: npm run build
       - name: Build site
         run: npm run build:site
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
       - name: Test package consumers
         run: npm run test:package
       - name: Validate package contents
@@ -54,7 +56,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22.12.0
+          node-version: 22.13.0
           cache: npm
       - name: Install dependencies
         run: npm ci
@@ -62,6 +64,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run browser smoke test
         run: npm run test:e2e
+      - name: Run production site browser regression test
+        run: npm run test:e2e:site
       - name: Upload Playwright failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4

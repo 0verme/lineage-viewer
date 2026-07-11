@@ -1,4 +1,4 @@
-import "lineage-viewer/define";
+import { defineLineageViewer } from "lineage-viewer";
 import type {
   LineageDiagnostic,
   LineageGraphData,
@@ -11,6 +11,8 @@ import { cloneGraph, demos, findDemo } from "./demo-registry.js";
 import { append, element, installStyles, link } from "./dom.js";
 import { parseJson, type JsonParseResult } from "./playground-utils.js";
 import { styles } from "./styles.js";
+
+defineLineageViewer();
 
 installStyles(styles);
 

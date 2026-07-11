@@ -7,19 +7,22 @@ import type {
   LineageViewerOptions,
 } from "lineage-viewer";
 
-import { cloneGraph, demos, findDemo } from "./demo-registry.js";
+import { cloneGraph, getLocalizedDemoData } from "./demo-registry.js";
 import { append, element, installStyles, link } from "./dom.js";
 import { parseJson, type JsonParseResult } from "./playground-utils.js";
 import { styles } from "./styles.js";
+import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
 
 defineLineageViewer();
 
 installStyles(styles);
+localizeDocument("Playground");
 
 const app = document.querySelector("#app");
 if (!app) throw new Error("Playground root is missing.");
 
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
+const demos = getLocalizedDemoData(getLanguage());
 type Direction = NonNullable<LineageViewerOptions["direction"]>;
 type HighlightMode = NonNullable<LineageViewerOptions["highlightMode"]>;
 type Source = "demo" | "file" | "manual";
@@ -34,7 +37,7 @@ interface PlaygroundState {
 }
 
 const queryDemoId = new URLSearchParams(location.search).get("demo");
-const initialDemo = findDemo(queryDemoId) ?? demos[0];
+const initialDemo = demos.find((demo) => demo.id === queryDemoId) ?? demos[0];
 if (!initialDemo) throw new Error("Playground requires a demo.");
 const state: PlaygroundState = {
   rawText: JSON.stringify(cloneGraph(initialDemo.graph), null, 2),
@@ -53,28 +56,26 @@ shell.className = "shell playground";
 const header = element("header");
 append(
   header,
-  link("./", "Back to gallery", "brand"),
-  element("span", "JSON Playground"),
-  element("span", "Local-only: JSON stays in your browser."),
+  link(buildLocalizedUrl("./"), t("backGallery"), "brand"),
+  element("span", t("playground")),
+  element("span", t("localOnly")),
+  languageSwitcher(),
 );
 const heading = element("section");
 heading.className = "playground-heading";
 append(
   heading,
-  element("p", "JSON Playground"),
-  element("h1", "Try your lineage JSON locally"),
-  element(
-    "p",
-    "Parse JSON in the browser, then preview it with the same viewer used by the gallery.",
-  ),
+  element("p", t("playground")),
+  element("h1", t("playgroundTitle")),
+  element("p", t("playgroundLead")),
 );
-if (queryDemoId && !findDemo(queryDemoId)) {
-  const notice = element("p", "Unknown demo ID: loaded the default sample instead.");
+if (queryDemoId && !demos.some((demo) => demo.id === queryDemoId)) {
+  const notice = element("p", t("unknownDemo"));
   notice.className = "notice";
   heading.append(notice);
 }
 
-const editorPanel = panel("JSON editor");
+const editorPanel = panel(t("jsonEditor"));
 const toolbar = element("div");
 toolbar.className = "controls toolbar";
 const textarea = element("textarea");
@@ -82,14 +83,14 @@ textarea.value = state.rawText;
 textarea.spellcheck = false;
 textarea.autocomplete = "off";
 textarea.autocapitalize = "off";
-textarea.setAttribute("aria-label", "Lineage JSON editor");
-const parseStatus = element("p", "Ready.");
+textarea.setAttribute("aria-label", t("editorAria"));
+const parseStatus = element("p", t("ready"));
 parseStatus.className = "notice";
 parseStatus.id = "parse-status";
 parseStatus.setAttribute("aria-live", "polite");
 textarea.setAttribute("aria-describedby", parseStatus.id);
 const sample = element("select");
-sample.setAttribute("aria-label", "Demo sample");
+sample.setAttribute("aria-label", t("sampleAria"));
 for (const demo of demos) {
   const option = element("option", demo.title);
   option.value = demo.id;
@@ -105,46 +106,46 @@ file.accept = ".json,application/json";
 file.hidden = true;
 append(
   toolbar,
-  button("Run", apply),
-  labelWith("Auto-render", auto),
-  button("Format", () => transform(2)),
-  button("Minify", () => transform()),
-  button("Copy", () => void copy()),
-  button("Download", download),
-  button("Import JSON", () => file.click()),
-  button("Clear", () => setText("", "manual")),
-  button("Reset to sample", resetSample),
+  button(t("run"), apply),
+  labelWith(t("autoRender"), auto),
+  button(t("format"), () => transform(2)),
+  button(t("minify"), () => transform()),
+  button(t("copy"), () => void copy()),
+  button(t("download"), download),
+  button(t("import"), () => file.click()),
+  button(t("clear"), () => setText("", "manual")),
+  button(t("restore"), resetSample),
   sample,
   file,
 );
 append(editorPanel, toolbar, textarea, parseStatus);
 
-const previewPanel = panel("Interactive preview");
+const previewPanel = panel(t("preview"));
 const viewerCard = element("div");
 viewerCard.className = "viewer-card playground-viewer";
 const viewer = document.createElement("lineage-viewer") as LineageViewerElement;
 viewerCard.append(viewer);
-const previewStatus = element("p", "Preview is current.");
+const previewStatus = element("p", t("previewCurrent"));
 previewStatus.className = "notice";
 previewStatus.setAttribute("aria-live", "polite");
 const controls = element("div");
 controls.className = "controls";
 append(
   controls,
-  button("Fit view", () => viewer.fitView()),
-  button("Reset view", () => viewer.resetView()),
-  button("Clear selection", () => viewer.clearSelection()),
-  select("Direction", ["LR", "RL", "TB", "BT"], "LR", (value) =>
+  button(t("fitView"), () => viewer.fitView()),
+  button(t("resetView"), () => viewer.resetView()),
+  button(t("clearSelection"), () => viewer.clearSelection()),
+  select(t("direction"), ["LR", "RL", "TB", "BT"], "LR", (value) =>
     viewer.setOptions({ direction: value as Direction }),
   ),
-  select("Highlight", ["connected", "upstream", "downstream", "none"], "connected", (value) =>
+  select(t("highlight"), ["connected", "upstream", "downstream", "none"], "connected", (value) =>
     viewer.setOptions({ highlightMode: value as HighlightMode }),
   ),
-  checkbox("Show edge labels", false, (checked) => viewer.setOptions({ showEdgeLabels: checked })),
-  checkbox("Show self-loops", Boolean(initialDemo.viewerOptions?.showSelfLoops), (checked) =>
+  checkbox(t("showEdgeLabels"), false, (checked) => viewer.setOptions({ showEdgeLabels: checked })),
+  checkbox(t("showSelfLoops"), Boolean(initialDemo.viewerOptions?.showSelfLoops), (checked) =>
     viewer.setOptions({ showSelfLoops: checked }),
   ),
-  checkbox("Strict mode", false, (checked) => {
+  checkbox(t("strict"), false, (checked) => {
     viewer.setOptions({ validationMode: checked ? "strict" : "lenient" });
     apply();
   }),
@@ -154,14 +155,14 @@ const layout = element("div");
 layout.className = "playground-layout";
 append(layout, editorPanel, previewPanel);
 
-const diagnosticPanel = panel("Diagnostics");
+const diagnosticPanel = panel(t("diagnostics", { count: 0 }));
 const diagnostics = element("div");
 diagnosticPanel.append(diagnostics);
-const eventPanel = panel("Recent events");
+const eventPanel = panel(t("events"));
 const events = element("div");
 eventPanel.append(events);
-const nodePanel = panel("Selected node");
-const nodeDetails = element("p", "No node selected.");
+const nodePanel = panel(t("selectedNode"));
+const nodeDetails = element("p", t("noSelectedNode"));
 nodeDetails.className = "muted";
 nodePanel.append(nodeDetails);
 const details = element("div");
@@ -192,7 +193,7 @@ function apply(): void {
   timer = undefined;
   state.parseResult = parseJson(state.rawText);
   if (state.parseResult === null) {
-    parseStatus.textContent = "Enter or load lineage JSON to update the preview.";
+    parseStatus.textContent = t("inputHint");
     updatePreviewStatus();
     renderDiagnostics();
     return;
@@ -201,7 +202,7 @@ function apply(): void {
     const locationText = state.parseResult.line
       ? ` Line ${state.parseResult.line}, column ${state.parseResult.column}.`
       : "";
-    parseStatus.textContent = `Parse error: ${state.parseResult.message}.${locationText}`;
+    parseStatus.textContent = `${t("parseError", { message: state.parseResult.message })}.${locationText}`;
     updatePreviewStatus();
     renderDiagnostics();
     return;
@@ -209,20 +210,18 @@ function apply(): void {
   viewer.setData(state.parseResult.value as LineageGraphData);
   state.appliedRevision = state.revision;
   hasPreview = true;
-  parseStatus.textContent = "JSON parsed successfully.";
+  parseStatus.textContent = t("parsed");
   updatePreviewStatus();
   queueMicrotask(renderDiagnostics);
 }
 function updatePreviewStatus(): void {
   if (!state.rawText.trim()) {
-    previewStatus.textContent = hasPreview
-      ? "Preview is showing the last successfully parsed JSON."
-      : "No preview yet.";
+    previewStatus.textContent = hasPreview ? t("lastSuccess") : t("noPreview");
   } else if (!state.autoRender && state.revision !== state.appliedRevision) {
-    previewStatus.textContent = "The editor contains unapplied changes.";
+    previewStatus.textContent = t("unapplied");
   } else if (state.parseResult && !state.parseResult.ok) {
-    previewStatus.textContent = "Preview is showing the last successfully parsed JSON.";
-  } else previewStatus.textContent = "Preview is current.";
+    previewStatus.textContent = t("lastSuccess");
+  } else previewStatus.textContent = t("previewCurrent");
 }
 function transform(spacing?: number): void {
   const result = parseJson(state.rawText);
@@ -237,9 +236,9 @@ async function copy(): Promise<void> {
   try {
     if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
     await navigator.clipboard.writeText(state.rawText);
-    parseStatus.textContent = "JSON copied to clipboard.";
+    parseStatus.textContent = t("copied");
   } catch {
-    parseStatus.textContent = "Could not copy JSON. Clipboard access is unavailable.";
+    parseStatus.textContent = t("copyFailed");
   }
 }
 function download(): void {
@@ -253,10 +252,10 @@ function download(): void {
       : "lineage-graph.json";
   anchor.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  parseStatus.textContent = "Downloaded current editor contents.";
+  parseStatus.textContent = t("downloaded");
 }
 function resetSample(): void {
-  const demo = findDemo(sample.value);
+  const demo = demos.find((item) => item.id === sample.value);
   if (!demo) return;
   state.selectedDemoId = demo.id;
   events.replaceChildren();
@@ -284,13 +283,13 @@ async function importFile(): Promise<void> {
   file.value = "";
   if (!selectedFile) return;
   if (selectedFile.size > MAX_FILE_BYTES) {
-    parseStatus.textContent = "Import rejected: files must be 2 MB or smaller.";
+    parseStatus.textContent = t("importedTooLarge");
     return;
   }
   try {
     setText(await selectedFile.text(), "file");
   } catch {
-    parseStatus.textContent = "Could not read the selected file.";
+    parseStatus.textContent = t("fileError");
   }
 }
 for (const name of [
@@ -313,11 +312,11 @@ viewer.addEventListener("lineage-selection-change", (event) =>
 function renderDiagnostics(): void {
   diagnostics.replaceChildren();
   if (state.parseResult && !state.parseResult.ok) {
-    diagnostics.append(element("div", `JSON parse error: ${state.parseResult.message}`));
+    diagnostics.append(element("div", t("parseError", { message: state.parseResult.message })));
   }
   const values = viewer.getDiagnostics();
   if (!values.length && (!state.parseResult || state.parseResult.ok))
-    diagnostics.append(element("p", "No viewer diagnostics."));
+    diagnostics.append(element("p", t("viewerDiagnostics")));
   for (const item of values) renderDiagnostic(item);
 }
 function renderDiagnostic(item: LineageDiagnostic): void {
@@ -327,11 +326,11 @@ function renderDiagnostic(item: LineageDiagnostic): void {
 }
 function renderNode(target: HTMLElement, node: LineageNode | null): void {
   target.replaceChildren();
-  if (!node) return void (target.textContent = "No node selected.");
+  if (!node) return void (target.textContent = t("noSelectedNode"));
   for (const [key, value] of [
-    ["ID", node.id],
-    ["Label", node.label],
-    ["Metadata", JSON.stringify(node.metadata ?? {})],
+    [t("id"), node.id],
+    [t("label"), node.label],
+    [t("metadata"), JSON.stringify(node.metadata ?? {})],
   ]) {
     const row = element("div");
     row.className = "detail";

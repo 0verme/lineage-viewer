@@ -2,6 +2,10 @@
 
 The public Gallery is a static, framework-free showcase for the real `<lineage-viewer>` Web Component. It is separate from `examples/vanilla/`, which remains the minimal integration example.
 
+## Language
+
+The Demo site defaults to Simplified Chinese. Use the `中文 | English` control in the upper-right corner to switch languages; the selection is saved in local storage. Direct links can explicitly select a language with `?lang=zh-CN` or `?lang=en` (for example, `demo.html?id=basic&lang=en`).
+
 ## Scenarios
 
 The shared registry supplies `simple-pipeline`, `fan-in-join`, `fan-out-marts`, `warehouse-layers`, `cycles`, `disconnected-components`, and `large-graph`. The last scenario has 120 deterministic nodes; it is a browsing showcase, not a performance-limit claim.

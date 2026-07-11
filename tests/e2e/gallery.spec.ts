@@ -5,7 +5,7 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
-  await page.goto("/site/");
+  await page.goto("/site/?lang=en");
   await expect(page.locator("lineage-viewer")).toBeVisible();
   await expect(page.locator("lineage-viewer .node")).toHaveCount(4);
   const cards = page.locator("#demos article");
@@ -18,7 +18,7 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
 });
 
 test("demo controls, JSON and diagnostics are interactive", async ({ page }) => {
-  await page.goto("/site/demo.html?id=cycles");
+  await page.goto("/site/demo.html?id=cycles&lang=en");
   const viewer = page.locator("lineage-viewer");
   await expect(viewer.locator(".node")).toHaveCount(7);
   await page.getByLabel("Direction").selectOption("TB");
@@ -30,10 +30,10 @@ test("demo controls, JSON and diagnostics are interactive", async ({ page }) => 
   await expect(page.locator(".notice")).toContainText(/JSON copied|Could not copy/);
   await expect(page.locator(".diagnostic").first()).toContainText("CYCLE");
   await page.getByRole("button", { name: "Clear selection" }).click();
-  await expect(page.locator(".summary")).toContainText("Selected: none");
+  await expect(page.locator(".summary")).toContainText("Selected: No node selected.");
 });
 
 test("unknown demo has a friendly static not-found page", async ({ page }) => {
-  await page.goto("/site/demo.html?id=not-real");
+  await page.goto("/site/demo.html?id=not-real&lang=en");
   await expect(page.getByText("Demo not found")).toBeVisible();
 });

@@ -1,171 +1,164 @@
 import { defineLineageViewer } from "lineage-viewer";
-import type {
-  LineageDiagnostic,
-  LineageNode,
-  LineageViewerElement,
-  LineageViewerOptions,
-} from "lineage-viewer";
-
-import { cloneGraph, demos, findDemo } from "./demo-registry.js";
+import type { LineageNode, LineageViewerElement, LineageViewerOptions } from "lineage-viewer";
+import { cloneGraph, getLocalizedDemoData, type LineageDemoDefinition } from "./demo-registry.js";
 import { append, element, installStyles, link } from "./dom.js";
+import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
 import { styles } from "./styles.js";
-
 defineLineageViewer();
-
 installStyles(styles);
+localizeDocument("Demo");
 const app = document.querySelector("#app");
 if (!app) throw new Error("Demo root is missing.");
 const appRoot = app;
-type Direction = NonNullable<LineageViewerOptions["direction"]>;
-type HighlightMode = NonNullable<LineageViewerOptions["highlightMode"]>;
+const id = new URLSearchParams(location.search).get("id");
+const demos = getLocalizedDemoData(getLanguage());
 const demo =
-  findDemo(new URLSearchParams(location.search).get("id")) ?? (location.search ? null : demos[0]);
+  demos.find((item) => item.id === (id === "basic" ? "simple-pipeline" : id)) ??
+  (!location.search ? demos[0] : null);
 if (!demo) {
   const shell = element("main");
   shell.className = "shell not-found";
   append(
     shell,
-    element("p", "Demo not found"),
-    element("h1", "That demo is not in the gallery."),
-    element("p", "Choose one of the registered, stable demo URLs instead."),
-    link("./", "Back to gallery", "primary"),
+    element("p", t("demoNotFound")),
+    element("h1", t("demoNotFoundLead")),
+    element("p", t("demoNotFoundHint")),
+    link(buildLocalizedUrl("./"), t("backGallery"), "primary"),
   );
   appRoot.append(shell);
-} else renderDemo(demo);
-
-function renderDemo(current: NonNullable<typeof demo>): void {
-  document.title = `${current.title} — lineage-viewer demo`;
+} else render(demo);
+function render(current: LineageDemoDefinition): void {
+  document.title = `${current.title} — ${t("titleDemo")}`;
   const shell = element("div");
   shell.className = "shell";
   const header = element("header");
   append(
     header,
-    link("./", "← Back to gallery", "brand"),
-    link(
-      `./playground.html?demo=${encodeURIComponent(current.id)}`,
-      "Edit this JSON in Playground",
-    ),
-    element("span", current.title),
+    link(buildLocalizedUrl("./"), t("backGallery"), "brand"),
+    link(buildLocalizedUrl(`./playground.html?demo=${current.id}`), t("editJson")),
+    languageSwitcher(),
   );
   const heading = element("section");
   append(
     heading,
-    element("span", "Interactive demo"),
+    element("span", t("interactiveDemo")),
     element("h1", current.title),
     element("p", current.description),
   );
-  const controls = element("section");
-  controls.className = "controls panel";
   const viewer = document.createElement("lineage-viewer") as LineageViewerElement;
   viewer.data = cloneGraph(current.graph);
   viewer.setOptions({ fitOnLoad: true, ...current.viewerOptions });
-  const fit = button("Fit view", () => viewer.fitView());
-  const reset = button("Reset view", () => viewer.resetView());
-  const clear = button("Clear selection", () => viewer.clearSelection());
-  const direction = select("Direction", ["LR", "RL", "TB", "BT"], "LR", (value) =>
-    setOptions({ direction: value as Direction }),
-  );
-  const highlight = select(
-    "Highlight",
-    ["connected", "upstream", "downstream", "none"],
-    "connected",
-    (value) => setOptions({ highlightMode: value as HighlightMode }),
-  );
-  const edgeLabels = checkbox("Show edge labels", false, (checked) =>
-    setOptions({ showEdgeLabels: checked }),
-  );
-  const selfLoops = checkbox(
-    "Show self-loops",
-    Boolean(current.viewerOptions?.showSelfLoops),
-    (checked) => setOptions({ showSelfLoops: checked }),
-  );
-  append(controls, fit, reset, clear, direction, highlight, edgeLabels, selfLoops);
-  const viewerCard = element("div");
-  viewerCard.className = "viewer-card demo-viewer";
-  viewerCard.append(viewer);
-  const summary = element("div");
-  summary.className = "summary";
-  const selectedSummary = element("span", "Selected: none");
-  const diagnosticSummary = element("span", "Diagnostics: 0");
-  append(
-    summary,
-    element("span", `Nodes: ${current.graph.nodes.length}`),
-    element("span", `Edges: ${current.graph.edges.length}`),
-    element("span", "Direction: LR"),
-    selectedSummary,
-    diagnosticSummary,
-  );
-  const nodePanel = panel("Selected node");
-  const nodeContent = element("p", "No node selected.");
-  nodeContent.className = "muted";
-  nodePanel.append(nodeContent);
-  const eventPanel = panel("Recent events");
-  const clearEvents = button("Clear events", () => {
-    events.replaceChildren();
-  });
-  const events = element("div");
-  eventPanel.append(clearEvents, events);
-  const diagnosticPanel = panel("Diagnostics");
-  const diagnostics = element("div");
-  diagnosticPanel.append(diagnostics);
-  const side = element("aside");
-  side.className = "details";
-  append(side, nodePanel, eventPanel, diagnosticPanel);
-  const layout = element("div");
-  layout.className = "demo-layout";
-  const visual = element("div");
-  append(visual, viewerCard, summary);
-  append(layout, visual, side);
-  const jsonSection = element("section");
-  jsonSection.className = "panel";
-  const jsonHeading = element("h2", "Read-only JSON");
-  const copyStatus = element("p");
-  copyStatus.className = "notice";
-  const copyJson = async (): Promise<void> => {
-    try {
-      if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
-      await navigator.clipboard.writeText(json);
-      copyStatus.textContent = "JSON copied to clipboard.";
-    } catch {
-      copyStatus.textContent = "Could not copy JSON. Clipboard access is unavailable.";
-    }
-  };
-  const copy = button("Copy JSON", () => {
-    void copyJson();
-  });
-  const json = JSON.stringify(current.graph, null, 2);
-  const pre = element("pre");
-  pre.append(element("code", json));
-  append(jsonSection, jsonHeading, copy, copyStatus, pre);
-  append(shell, header, heading, controls, layout, jsonSection);
-  appRoot.append(shell);
-  const eventLog: Array<{ name: string; detail: unknown }> = [];
-  const refreshDiagnostics = () => {
-    const items = viewer.getDiagnostics();
-    diagnosticSummary.textContent = `Diagnostics: ${items.length}`;
-    renderDiagnostics(diagnostics, items);
-  };
+  const controls = element("section");
+  controls.className = "controls panel";
   const setOptions = (options: Partial<LineageViewerOptions>) => {
     viewer.setOptions(options);
-    const directionSummary = summary.children[2];
-    if (directionSummary) directionSummary.textContent = `Direction: ${viewer.options.direction}`;
+    directionSummary.textContent = `${t("direction")}: ${viewer.options.direction}`;
     queueMicrotask(refreshDiagnostics);
   };
-  for (const name of [
+  const directionSummary = element("span", `${t("direction")}: LR`);
+  append(
+    controls,
+    button(t("fitView"), () => viewer.fitView()),
+    button(t("resetView"), () => viewer.resetView()),
+    button(t("clearSelection"), () => viewer.clearSelection()),
+    select(t("direction"), ["LR", "RL", "TB", "BT"], "LR", (v) =>
+      setOptions({ direction: v as NonNullable<LineageViewerOptions["direction"]> }),
+    ),
+    select(t("highlight"), ["connected", "upstream", "downstream", "none"], "connected", (v) =>
+      setOptions({ highlightMode: v as NonNullable<LineageViewerOptions["highlightMode"]> }),
+    ),
+    checkbox(t("showEdgeLabels"), false, (v) => setOptions({ showEdgeLabels: v })),
+    checkbox(t("showSelfLoops"), Boolean(current.viewerOptions?.showSelfLoops), (v) =>
+      setOptions({ showSelfLoops: v }),
+    ),
+  );
+  const card = element("div");
+  card.className = "viewer-card demo-viewer";
+  card.append(viewer);
+  const summary = element("div");
+  summary.className = "summary";
+  const selected = element("span", t("selected", { value: t("noSelectedNode") }));
+  const diagnosticSummary = element("span", t("diagnostics", { count: 0 }));
+  append(
+    summary,
+    element("span", `${current.graph.nodes.length} ${t("nodes")}`),
+    element("span", `${current.graph.edges.length} ${t("edges")}`),
+    directionSummary,
+    selected,
+    diagnosticSummary,
+  );
+  const nodePanel = panel(t("selectedNode"));
+  const nodeContent = element("p", t("noSelectedNode"));
+  nodeContent.className = "muted";
+  nodePanel.append(nodeContent);
+  const eventPanel = panel(t("events"));
+  const events = element("div");
+  eventPanel.append(
+    button(t("clearEvents"), () => events.replaceChildren()),
+    events,
+  );
+  const diagPanel = panel(t("diagnostics", { count: 0 }));
+  const diagnostics = element("div");
+  diagPanel.append(diagnostics);
+  const side = element("aside");
+  side.className = "details";
+  append(side, nodePanel, eventPanel, diagPanel);
+  const visual = element("div");
+  append(visual, card, summary);
+  const layout = element("div");
+  layout.className = "demo-layout";
+  append(layout, visual, side);
+  const json = JSON.stringify(current.graph, null, 2);
+  const jsonPanel = panel(t("readOnlyJson"));
+  const notice = element("p");
+  notice.className = "notice";
+  jsonPanel.append(
+    button(
+      t("copyJson"),
+      () =>
+        void navigator.clipboard
+          ?.writeText(json)
+          .then(() => (notice.textContent = t("copied")))
+          .catch(() => (notice.textContent = t("copyFailed"))),
+    ),
+    notice,
+  );
+  const pre = element("pre");
+  pre.append(element("code", json));
+  jsonPanel.append(pre);
+  append(shell, header, heading, controls, layout, jsonPanel);
+  appRoot.append(shell);
+  const log: Array<{ name: string; detail: unknown }> = [];
+  const refreshDiagnostics = () => {
+    const values = viewer.getDiagnostics();
+    diagnosticSummary.textContent = t("diagnostics", { count: values.length });
+    diagnostics.replaceChildren();
+    if (!values.length) diagnostics.append(element("p", t("noDiagnostics")));
+    for (const item of values) {
+      const row = element("div", `[${item.level.toUpperCase()}] ${item.code}: ${item.message}`);
+      row.className = `diagnostic ${item.level}`;
+      diagnostics.append(row);
+    }
+  };
+  [
     "lineage-ready",
     "lineage-node-click",
     "lineage-selection-change",
     "lineage-error",
     "lineage-warning",
-  ] as const)
+  ].forEach((name) =>
     viewer.addEventListener(name, (event) => {
-      eventLog.unshift({ name, detail: (event as CustomEvent).detail });
-      eventLog.splice(20);
-      renderEvents(events, eventLog);
-    });
+      log.unshift({ name, detail: (event as CustomEvent).detail });
+      log.splice(20);
+      events.replaceChildren();
+      if (!log.length) events.append(element("p", t("noEvents")));
+      for (const value of log)
+        events.append(element("div", `${value.name}: ${safeJson(value.detail)}`));
+    }),
+  );
   viewer.addEventListener("lineage-selection-change", (event) => {
     const node = (event as CustomEvent<{ node: LineageNode | null }>).detail.node;
-    selectedSummary.textContent = `Selected: ${node?.id ?? "none"}`;
+    selected.textContent = t("selected", { value: node?.id ?? t("noSelectedNode") });
     renderNode(nodeContent, node);
   });
   queueMicrotask(refreshDiagnostics);
@@ -177,35 +170,35 @@ function button(text: string, listener: () => void): HTMLButtonElement {
   return value;
 }
 function select(
-  labelText: string,
+  label: string,
   values: readonly string[],
-  selected: string,
+  initial: string,
   listener: (value: string) => void,
 ): HTMLLabelElement {
-  const label = element("label", labelText);
-  const value = element("select");
-  for (const item of values) {
-    const option = element("option", item);
-    option.value = item;
-    option.selected = item === selected;
-    value.append(option);
+  const result = element("label", label);
+  const input = element("select");
+  for (const value of values) {
+    const option = element("option", value);
+    option.value = value;
+    option.selected = value === initial;
+    input.append(option);
   }
-  value.addEventListener("change", () => listener(value.value));
-  label.append(value);
-  return label;
+  input.addEventListener("change", () => listener(input.value));
+  result.append(input);
+  return result;
 }
 function checkbox(
   text: string,
   checked: boolean,
   listener: (value: boolean) => void,
 ): HTMLLabelElement {
-  const label = element("label");
+  const result = element("label");
   const input = element("input");
   input.type = "checkbox";
   input.checked = checked;
   input.addEventListener("change", () => listener(input.checked));
-  append(label, input, text);
-  return label;
+  append(result, input, text);
+  return result;
 }
 function panel(title: string): HTMLElement {
   const value = element("section");
@@ -216,49 +209,20 @@ function panel(title: string): HTMLElement {
 function renderNode(target: HTMLElement, node: LineageNode | null): void {
   target.replaceChildren();
   if (!node) {
-    target.textContent = "No node selected.";
-    target.className = "muted";
+    target.textContent = t("noSelectedNode");
     return;
   }
-  target.className = "";
   for (const [key, value] of [
-    ["ID", node.id],
-    ["Label", node.label],
-    ["Type", node.type ?? "—"],
-    ["Layer", node.layer ?? "—"],
-    ["Subtitle", node.subtitle ?? "—"],
-    ["Metadata", JSON.stringify(node.metadata ?? {}, null, 2)],
+    [t("id"), node.id],
+    [t("label"), node.label],
+    [t("type"), node.type ?? "—"],
+    [t("layer"), node.layer ?? "—"],
+    [t("subtitle"), node.subtitle ?? "—"],
+    [t("metadata"), JSON.stringify(node.metadata ?? {})],
   ]) {
-    const item = element("div");
-    item.className = "detail";
-    append(item, element("strong", key), element("span", value));
-    target.append(item);
-  }
-}
-function renderEvents(
-  target: HTMLElement,
-  values: readonly { name: string; detail: unknown }[],
-): void {
-  target.replaceChildren();
-  for (const [index, value] of values.entries()) {
-    const row = element("div", `${index + 1}. ${value.name}: ${safeJson(value.detail)}`);
-    row.className = "event";
-    target.append(row);
-  }
-  if (!values.length) target.append(element("p", "No events yet."));
-}
-function renderDiagnostics(target: HTMLElement, values: readonly LineageDiagnostic[]): void {
-  target.replaceChildren();
-  if (!values.length) {
-    target.append(element("p", "No diagnostics"));
-    return;
-  }
-  for (const item of values) {
-    const row = element(
-      "div",
-      `[${item.level.toUpperCase()}] ${item.code}: ${item.message}${item.nodeId ? ` (${item.nodeId})` : ""}${item.edgeId ? ` (${item.edgeId})` : ""}`,
-    );
-    row.className = `diagnostic ${item.level}`;
+    const row = element("div");
+    row.className = "detail";
+    append(row, element("strong", key), element("span", value));
     target.append(row);
   }
 }

@@ -4,6 +4,7 @@ import type {
   LineageNode,
   LineageViewerOptions,
 } from "lineage-viewer";
+import type { Language } from "./i18n.js";
 
 export interface LineageDemoDefinition {
   readonly id: string;
@@ -267,4 +268,106 @@ export function findDemo(id: string | null): LineageDemoDefinition | null {
 }
 export function cloneGraph(graph: LineageGraphData): LineageGraphData {
   return JSON.parse(JSON.stringify(graph)) as LineageGraphData;
+}
+
+const chineseDemoText: Record<
+  string,
+  Pick<LineageDemoDefinition, "title" | "summary" | "description" | "tags">
+> = {
+  "simple-pipeline": {
+    title: "基础链路",
+    summary: "从 ODS 到 ADS 的最小血缘链路。",
+    description: "用于查看基础分层布局的紧凑快速开始场景。",
+    tags: ["快速开始", "布局"],
+  },
+  "fan-in-join": {
+    title: "多路汇聚",
+    summary: "三个上游来源汇聚为客户交易模型。",
+    description: "选择汇聚模型并使用上游高亮查看依赖关系。",
+    tags: ["多路汇聚", "上游"],
+  },
+  "fan-out-marts": {
+    title: "一对多分发",
+    summary: "一个客户汇总模型分发到四个业务集市。",
+    description: "选择共享模型并使用下游高亮查看使用方。",
+    tags: ["一对多", "下游"],
+  },
+  "warehouse-layers": {
+    title: "多层数据仓库",
+    summary: "跨 ODS、DWD、DWM/DWS、ADS 和 DWP 的中型数仓血缘图。",
+    description: "真实尺寸的模拟数仓，展示适应画布、拖拽、缩放和元数据。",
+    tags: ["数据仓库", "元数据", "缩放"],
+  },
+  cycles: {
+    title: "环路与强连通分量",
+    summary: "一个有效图中同时包含环、强连通分量和保留的自环。",
+    description: "环形 SCC 成员使用确定性小堆栈布局，本演示会产生环路诊断。",
+    tags: ["强连通分量", "诊断", "自环"],
+  },
+  "disconnected-components": {
+    title: "非连通图",
+    summary: "独立管道、孤立节点和一个小型断开的环路。",
+    description: "弱连通块被独立打包，互不重叠。",
+    tags: ["连通分量", "打包"],
+  },
+  "large-graph": {
+    title: "大型确定性图",
+    summary: "120 个节点及稳定生成的边，适合浏览展示规模。",
+    description: "这是确定性的展示规模，不代表性能上限。",
+    tags: ["120 个节点", "适应画布", "拖拽"],
+  },
+};
+const chineseNames: Record<string, [string, string]> = {
+  ods_orders: ["ODS_订单", "原始订单数据"],
+  dwd_orders: ["DWD_订单明细", "标准订单明细"],
+  dws_trade: ["DWS_交易汇总", "交易主题汇总"],
+  ads_daily_sales: ["ADS_每日销售", "每日销售集市"],
+  ods_order: ["ODS_订单", "订单来源"],
+  ods_customer: ["ODS_客户", "客户来源"],
+  ods_payment: ["ODS_支付", "支付来源"],
+  dwd_order_detail: ["DWD_订单明细", "订单关联明细"],
+  dws_customer_trade: ["DWS_客户交易", "客户交易汇总"],
+  dws_customer: ["DWS_客户汇总", "客户主题汇总"],
+  ads_marketing: ["ADS_营销", "营销数据集市"],
+  ads_risk: ["ADS_风控", "风控数据集市"],
+  ads_operation: ["ADS_运营", "运营数据集市"],
+  ads_finance: ["ADS_财务", "财务数据集市"],
+  raw_events: ["ODS_事件", "上游事件流"],
+  model_a: ["模型_A", "环路成员 A"],
+  model_b: ["模型_B", "环路成员 B"],
+  model_c: ["模型_C", "强连通成员 C"],
+  model_d: ["模型_D", "强连通成员 D"],
+  model_e: ["模型_E", "强连通成员 E"],
+  report: ["ADS_报表", "下游报表"],
+};
+function localizedGraph(graph: LineageGraphData): LineageGraphData {
+  const copy = cloneGraph(graph);
+  copy.nodes = copy.nodes.map((item) => {
+    const names = chineseNames[item.id];
+    if (names) return { ...item, label: names[0], subtitle: names[1] };
+    if (item.id.startsWith("model_"))
+      return { ...item, label: `模型_${item.id.slice(6)}`, subtitle: "确定性展示模型" };
+    const layer = item.layer ?? "数据";
+    return {
+      ...item,
+      label: `${layer}_${item.id.replace(/^(ods|dwd|dws|dwm|ads|dwp)_?/i, "")}`,
+      subtitle:
+        item.subtitle?.replace(
+          /Orders|order|Customer|customer|Finance|finance|Product|product/g,
+          "数据",
+        ) ?? "数据模型",
+    };
+  });
+  copy.edges = copy.edges.map((item) =>
+    item.label === "refresh" ? { ...item, label: "刷新" } : item,
+  );
+  return copy;
+}
+export function getLocalizedDemoData(language: Language): readonly LineageDemoDefinition[] {
+  if (language === "en") return demos;
+  return demos.map((demo) => ({
+    ...demo,
+    ...chineseDemoText[demo.id]!,
+    graph: localizedGraph(demo.graph),
+  }));
 }

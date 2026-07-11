@@ -12,7 +12,7 @@ Each stable URL has the form `demo.html?id=<demo-id>`. The detail page exposes t
 
 ## Development and deployment
 
-Run `npm run build:site` to produce `site-dist/`, then `npm run preview:site` to inspect it. Vite uses a relative asset base so GitHub Pages repository subpaths work and `demo.html` refreshes without an SPA fallback. `.github/workflows/pages.yml` runs on `main` pushes and manual dispatch, checks types and unit tests, builds the site, uploads the artifact, and deploys it after GitHub Pages is enabled in repository settings.
+Run `npm run build:site` to produce `site-dist/`, then `npm run preview:site` to inspect it. Vite uses a relative asset base so the generated multi-page site works under a custom domain and `demo.html` refreshes without an SPA fallback. `.github/workflows/cloudflare.yml` builds the site and deploys it as Cloudflare Workers Static Assets on `main` pushes and manual dispatch.
 
 Run `npm run screenshot:gallery` only when intentionally updating `docs/assets/demo-gallery.png`.
 

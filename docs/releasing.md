@@ -6,7 +6,7 @@ This repository is prepared for releases but does not publish automatically from
 
 Configure npm trusted publishing on npmjs.com for GitHub owner `0verme`, repository `lineage-viewer`, workflow `.github/workflows/release.yml`, and the `npm` GitHub Environment. Trusted publishing supplies the workflow's OIDC identity; do not add an npm token to this repository.
 
-In GitHub, create the `npm` Environment. It may require reviewers and restrict deployments to protected tags. Enable Pages with **GitHub Actions** as its source; the `github-pages` Environment is created and used by the Pages deployment workflow. A custom domain can be added later in GitHub Pages settings; this repository intentionally has no `CNAME` file.
+In GitHub, create the `npm` Environment. It may require reviewers and restrict deployments to protected tags. Configure the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets for the Cloudflare deployment workflow. A custom domain is configured in Cloudflare rather than through a repository `CNAME` file.
 
 ## Prepare a release
 

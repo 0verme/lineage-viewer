@@ -10,7 +10,7 @@ Project status: pre-alpha / active development. Version `0.1.0` is not published
 
 ![Local JSON Playground with a live lineage preview](docs/assets/json-playground.png)
 
-The repository includes a local static Demo Gallery with seven synthetic scenarios. A live demo will be available only after the Pages workflow is enabled and deployed.
+The repository includes a local static Demo Gallery with seven synthetic scenarios. The public demo is deployed as Cloudflare Workers Static Assets by GitHub Actions.
 
 This repository is still pre-alpha. It validates, normalizes, and deterministically lays out lineage graph data in a native Web Component SVG preview.
 
@@ -24,7 +24,7 @@ This repository is still pre-alpha. It validates, normalizes, and deterministica
 - `data`, `options`, diagnostics, lifecycle cleanup, and `lineage-ready`, `lineage-error`, and `lineage-warning` events.
 - Mouse-wheel anchored zoom, pointer pan, fit/reset/focus controls, ResizeObserver-aware viewport sizing, node selection, and upstream/downstream/connected highlights.
 - A minimal Vanilla preview in `examples/vanilla/`.
-- Demo Gallery, multi-scenario examples, interactive demo controls, a read-only JSON viewer, diagnostics/event inspection, GitHub Pages build, and a public showcase screenshot.
+- Demo Gallery, multi-scenario examples, interactive demo controls, a read-only JSON viewer, diagnostics/event inspection, Cloudflare Static Assets deployment, and a public showcase screenshot.
 
 ## Planned
 
@@ -81,6 +81,7 @@ npm run test:e2e     # Run the browser smoke test
 npm run build        # Build ESM and declarations into dist
 npm run build:site   # Build the static Gallery into site-dist
 npm run preview:site # Preview the built Gallery
+npx wrangler deploy   # Deploy site-dist to Cloudflare Workers Static Assets
 npm run screenshot:gallery # Update the selected documentation screenshot
 npm run screenshot:playground # Update the Playground screenshot
 npm run pack:check   # Validate the npm package allowlist
@@ -90,6 +91,10 @@ npm run test:package # Pack and test temporary vanilla and Vite TypeScript consu
 ## Demo Gallery and Playground
 
 The Gallery is a separate static site: its homepage is `/`, stable demo URLs use `/demo.html?id=<demo-id>`, and `/playground.html?demo=<demo-id>` opens a local editable sample. The Playground uses a native textarea, debounced auto-render, manual Run, strict/lenient preview options, local file import, and format/minify/copy/download tools. JSON stays in the browser and is not persisted. See [Demo Gallery](docs/demo-gallery.md) and [JSON Playground](docs/json-playground.md).
+
+### Cloudflare deployment
+
+`wrangler.jsonc` configures `site-dist/` as Cloudflare Workers Static Assets. The `cloudflare.yml` workflow builds the site and deploys it on pushes to `main` or manual dispatch. Configure the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` before running it.
 
 Playwright requires a compatible browser installation. For a fresh environment, install Chromium with `npx playwright install chromium` before running the E2E test.
 

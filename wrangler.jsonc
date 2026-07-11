@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "lineage-viewer-demo",
+  "compatibility_date": "2026-07-11",
+  "assets": {
+    "directory": "./site-dist"
+  }
+}

@@ -36,7 +36,7 @@ npm pack --dry-run
 npm publish --dry-run
 ```
 
-The release workflow performs a fresh `npm ci`, validates that tag and package versions match, repeats build/test/package checks, runs `npm publish --dry-run`, and publishes with `--provenance`. For the current unscoped package, npm's public default is used; if the package becomes scoped, explicitly set the intended `publishConfig.access` and align the publish command before release.
+The release workflow performs a fresh `npm ci`, validates that tag and package versions match, repeats build/test/package checks, runs `npm publish --dry-run`, and publishes with `--provenance --access public`. The explicit public access flag is required for the first trusted publication of this unscoped package; if the package becomes scoped, set the intended access explicitly before release.
 
 ## Verify and recover
 

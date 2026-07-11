@@ -16,7 +16,7 @@
 
 ## 项目状态
 
-项目目前处于 Alpha / 积极开发中。当前版本为 `0.1.0-alpha.1`，API 在后续版本中仍可能调整。Alpha 版本已发布到 npm 的 `alpha` dist-tag。
+项目目前处于 Alpha / 积极开发中。当前版本为 `0.1.0-alpha.1`，API 在后续版本中仍可能调整。npm Alpha 发布待完成 trusted publisher 配置后触发。
 
 ## 在线演示
 
@@ -42,7 +42,7 @@
 
 ## 快速开始
 
-npm 安装 Alpha 版本：
+发布完成后可通过以下命令安装 Alpha 版本：
 
 ```sh
 npm install lineage-viewer@alpha

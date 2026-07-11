@@ -8,7 +8,7 @@ import type {
 } from "lineage-viewer";
 
 import { cloneGraph, getLocalizedDemoData } from "./demo-registry.js";
-import { append, element, installStyles, link } from "./dom.js";
+import { append, element, installStyles, link, siteFooter, siteNavigation } from "./dom.js";
 import { parseJson, type JsonParseResult } from "./playground-utils.js";
 import { styles } from "./styles.js";
 import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
@@ -59,7 +59,7 @@ append(
   link(buildLocalizedUrl("./"), t("backGallery"), "brand"),
   element("span", t("playground")),
   element("span", t("localOnly")),
-  languageSwitcher(),
+  siteNavigation(languageSwitcher()),
 );
 const heading = element("section");
 heading.className = "playground-heading";
@@ -168,7 +168,7 @@ nodePanel.append(nodeDetails);
 const details = element("div");
 details.className = "playground-details";
 append(details, diagnosticPanel, eventPanel, nodePanel);
-append(shell, header, heading, layout, details);
+append(shell, header, heading, layout, details, siteFooter());
 app.append(shell);
 
 function setText(value: string, source: Source): void {

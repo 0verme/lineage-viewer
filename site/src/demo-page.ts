@@ -1,7 +1,7 @@
 import { defineLineageViewer } from "lineage-viewer";
 import type { LineageNode, LineageViewerElement, LineageViewerOptions } from "lineage-viewer";
 import { cloneGraph, getLocalizedDemoData, type LineageDemoDefinition } from "./demo-registry.js";
-import { append, element, installStyles, link } from "./dom.js";
+import { append, element, installStyles, link, siteFooter, siteNavigation } from "./dom.js";
 import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
 import { styles } from "./styles.js";
 defineLineageViewer();
@@ -24,6 +24,7 @@ if (!demo) {
     element("h1", t("demoNotFoundLead")),
     element("p", t("demoNotFoundHint")),
     link(buildLocalizedUrl("./"), t("backGallery"), "primary"),
+    siteFooter(),
   );
   appRoot.append(shell);
 } else render(demo);
@@ -36,7 +37,7 @@ function render(current: LineageDemoDefinition): void {
     header,
     link(buildLocalizedUrl("./"), t("backGallery"), "brand"),
     link(buildLocalizedUrl(`./playground.html?demo=${current.id}`), t("editJson")),
-    languageSwitcher(),
+    siteNavigation(languageSwitcher()),
   );
   const heading = element("section");
   append(
@@ -126,7 +127,7 @@ function render(current: LineageDemoDefinition): void {
   const pre = element("pre");
   pre.append(element("code", json));
   jsonPanel.append(pre);
-  append(shell, header, heading, controls, layout, jsonPanel);
+  append(shell, header, heading, controls, layout, jsonPanel, siteFooter());
   appRoot.append(shell);
   const log: Array<{ name: string; detail: unknown }> = [];
   const refreshDiagnostics = () => {

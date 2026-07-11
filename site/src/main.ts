@@ -1,7 +1,7 @@
 import { defineLineageViewer } from "lineage-viewer";
 import type { LineageViewerElement } from "lineage-viewer";
 import { cloneGraph, getLocalizedDemoData } from "./demo-registry.js";
-import { append, element, installStyles, link } from "./dom.js";
+import { append, element, installStyles, link, siteFooter, siteNavigation } from "./dom.js";
 import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
 import { styles } from "./styles.js";
 
@@ -18,7 +18,7 @@ append(
   header,
   link(buildLocalizedUrl("./"), "lineage-viewer", "brand"),
   link("#quick-start", t("quickStart")),
-  languageSwitcher(),
+  siteNavigation(languageSwitcher()),
 );
 const hero = element("section");
 hero.className = "hero";
@@ -85,5 +85,5 @@ append(quick, element("p", t("quickStartHeading")), element("h2", "Embed the vie
 const pre = element("pre");
 pre.append(element("code", "npm install lineage-viewer"));
 quick.append(pre);
-append(shell, header, hero, gallery, quick);
+append(shell, header, hero, gallery, quick, siteFooter());
 app.append(shell);

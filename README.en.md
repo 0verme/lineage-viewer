@@ -26,11 +26,11 @@ The production demo is [lineage.overme.cn](https://lineage.overme.cn). The site 
 - JSON validation, normalization, stable diagnostics, and strict/lenient modes.
 - Duplicate node/edge, self-loop, and missing source/target handling; upstream/downstream/connected highlights.
 - Deterministic layered layout in `LR`, `RL`, `TB`, and `BT`; zoom, pan, fit, reset, focus, and selection.
-- A static Demo Gallery, JSON Playground, minimal vanilla example, and host-consumable events.
+- A static Demo Gallery, JSON Playground, minimal vanilla/React/Vue examples, and host-consumable events.
 
 ### Implemented foundations
 
-The repository includes Vite, Vitest, Playwright, ESLint, Prettier, packaging, and CI baselines. Its deterministic layout performs SCC condensation, longest-path ranking, stable layer ordering, basic crossing reduction, and disconnected-block packing. The SVG viewer has nodes, edges, arrowheads, empty/invalid states, and `ResizeObserver`-aware sizing. `examples/vanilla/` is the minimal native example; the demo site provides multiple scenarios, read-only JSON, diagnostics, and event inspection.
+The repository includes Vite, Vitest, Playwright, ESLint, Prettier, packaging, and CI baselines. Its deterministic layout performs SCC condensation, longest-path ranking, stable layer ordering, basic crossing reduction, and disconnected-block packing. The SVG viewer has nodes, edges, arrowheads, empty/invalid states, and `ResizeObserver`-aware sizing. `examples/vanilla/`, `examples/react/`, and `examples/vue/` provide minimal integration examples; the demo site provides multiple scenarios, read-only JSON, diagnostics, and event inspection.
 
 Its technical principles are TypeScript strict mode, native browser APIs and ESM, zero runtime dependencies where practical, separation of schema/graph/layout/rendering/interaction responsibilities, synthetic data in public examples, and explicit custom-element registration instead of import-time global side effects.
 

@@ -28,11 +28,11 @@
 - 校验并规范化 JSON 数据；提供稳定诊断信息，以及 strict（严格模式）与 lenient（宽松模式）。
 - 处理重复节点、重复边、缺失 source/target、自环和环；支持 upstream、downstream、connected 高亮。
 - 使用确定性的分层布局，支持 `LR`、`RL`、`TB`、`BT` 方向、缩放、平移、fit、reset、聚焦与选择。
-- 提供 Demo Gallery、JSON Playground、原生 JavaScript 示例和可供宿主监听的事件。
+- 提供 Demo Gallery、JSON Playground、原生 JavaScript、React、Vue 示例和可供宿主监听的事件。
 
 ### 已实现的基础能力
 
-项目已提供 Vite、Vitest、Playwright、ESLint、Prettier、打包与 CI 基线；确定性布局会进行 SCC 收缩、最长路径分层、稳定层内排序、基础交叉减少与断开块打包。SVG 包含节点、边、箭头、空态和无效态，并使用 `ResizeObserver` 适配视图大小。`examples/vanilla/` 提供最小原生示例；演示站提供多场景、只读 JSON、诊断与事件检查。
+项目已提供 Vite、Vitest、Playwright、ESLint、Prettier、打包与 CI 基线；确定性布局会进行 SCC 收缩、最长路径分层、稳定层内排序、基础交叉减少与断开块打包。SVG 包含节点、边、箭头、空态和无效态，并使用 `ResizeObserver` 适配视图大小。`examples/vanilla/`、`examples/react/` 和 `examples/vue/` 提供最小集成示例；演示站提供多场景、只读 JSON、诊断与事件检查。
 
 技术原则包括：TypeScript strict 模式、原生浏览器 API 和 ESM、尽可能零运行时依赖、Schema/图处理/布局/渲染/交互职责分离、全部公开示例使用合成数据，以及显式注册自定义元素而非导入时修改全局状态。
 

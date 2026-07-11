@@ -2,6 +2,14 @@
   "name": "lineage-viewer",
   "version": "0.1.0",
   "description": "A lightweight, framework-agnostic, embeddable lineage graph viewer.",
+  "homepage": "https://lineage.overme.cn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0verme/lineage-viewer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0verme/lineage-viewer/issues"
+  },
   "type": "module",
   "license": "Apache-2.0",
   "sideEffects": [
@@ -24,6 +32,7 @@
   "files": [
     "dist",
     "README.md",
+    "README.en.md",
     "README.zh-CN.md",
     "LICENSE",
     "NOTICE"

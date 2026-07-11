@@ -41,6 +41,7 @@ const required = [
   "LICENSE",
   "NOTICE",
   "README.md",
+  "README.en.md",
   "README.zh-CN.md",
   "dist/define.d.ts",
   "dist/define.js",

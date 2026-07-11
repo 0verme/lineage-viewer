@@ -14,7 +14,7 @@
 
 ## Project status
 
-This project is Alpha / under active development. Version `0.1.0` has not been published to npm, and the API may still change. Packaging, GitHub Releases, and deployment workflows are prepared, but preparation is not a release.
+This project is Alpha / under active development. The current version is `0.1.0-alpha.1`; the API may still change. The Alpha release is published to npm under the `alpha` dist-tag.
 
 ## Live demo
 
@@ -40,10 +40,10 @@ Use lineage-viewer to visualize standardized nodes and edges for warehouses, ETL
 
 ## Quick start
 
-The package is not formally published to npm yet. After publication, install it with the following command; until then, use a local tarball generated with `npm pack` from this repository:
+Install the Alpha release from npm:
 
 ```sh
-npm install lineage-viewer
+npm install lineage-viewer@alpha
 ```
 
 ```html

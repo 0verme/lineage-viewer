@@ -16,7 +16,7 @@
 
 ## 项目状态
 
-项目目前处于 Alpha / 积极开发中。`0.1.0` 尚未正式发布到 npm，API 在后续版本中仍可能调整。仓库已具备打包、GitHub Release 与部署流程，但不应把预备流程当作已发布服务。
+项目目前处于 Alpha / 积极开发中。当前版本为 `0.1.0-alpha.1`，API 在后续版本中仍可能调整。Alpha 版本已发布到 npm 的 `alpha` dist-tag。
 
 ## 在线演示
 
@@ -42,10 +42,10 @@
 
 ## 快速开始
 
-npm 尚未正式发布。发布后将使用以下安装命令；在此之前请使用本仓库通过 `npm pack` 生成的本地 tarball：
+npm 安装 Alpha 版本：
 
 ```sh
-npm install lineage-viewer
+npm install lineage-viewer@alpha
 ```
 
 ```html

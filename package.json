@@ -1,6 +1,6 @@
 {
   "name": "lineage-viewer",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "A lightweight, framework-agnostic, embeddable lineage graph viewer.",
   "homepage": "https://lineage.overme.cn",
   "repository": {

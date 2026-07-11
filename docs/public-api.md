@@ -1,6 +1,6 @@
 # Public API
 
-This document freezes the `0.1.0` public browser API. The package is currently pre-alpha and has not been published to npm; use a packed tarball or a future published version. Only the root and `./define` package exports are supported.
+This document freezes the `0.1.0` public browser API. The package is currently Alpha and the API may still change. Install the published package with `npm install lineage-viewer@alpha`. Only the root and `./define` package exports are supported.
 
 ## Registration
 

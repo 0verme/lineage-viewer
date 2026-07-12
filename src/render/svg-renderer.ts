@@ -60,15 +60,15 @@ export class SvgRenderer {
       if (options.showEdgeLabels && item.edge.label) {
         const label = create("text");
         label.setAttribute("class", "edge-label");
-        label.setAttribute("x", "8");
-        label.setAttribute("y", "-6");
+        label.setAttribute("x", String(item.labelX));
+        label.setAttribute("y", String(item.labelY));
+        label.setAttribute("dy", "-6");
+        label.setAttribute("text-anchor", "middle");
         label.textContent = item.edge.label;
-        const group = create("g");
-        group.append(label);
-        edges.append(group);
+        edges.append(label);
       }
     }
-    for (const item of scene.nodes) {
+    for (const [index, item] of scene.nodes.entries()) {
       const group = create("g");
       group.setAttribute("class", "node");
       group.setAttribute("transform", `translate(${item.x} ${item.y})`);
@@ -80,17 +80,31 @@ export class SvgRenderer {
       rect.setAttribute("width", String(item.width));
       rect.setAttribute("height", String(item.height));
       rect.setAttribute("rx", "8");
+      const clipId = `${this.markerId}-node-text-${index}`;
+      const clipPath = create("clipPath");
+      clipPath.setAttribute("id", clipId);
+      const clipRect = create("rect");
+      clipRect.setAttribute("x", "16");
+      clipRect.setAttribute("width", String(Math.max(0, item.width - 32)));
+      clipRect.setAttribute("height", String(item.height));
+      clipPath.append(clipRect);
+      const tooltip = create("title");
+      tooltip.textContent = item.node.subtitle
+        ? `${item.node.label}\n${item.node.subtitle}`
+        : item.node.label;
       const title = create("text");
       title.setAttribute("class", "node-title");
       title.setAttribute("x", "16");
       title.setAttribute("y", "30");
+      title.setAttribute("clip-path", `url(#${clipId})`);
       title.textContent = item.node.label;
-      group.append(rect, title);
+      group.append(clipPath, tooltip, rect, title);
       if (item.node.subtitle) {
         const subtitle = create("text");
         subtitle.setAttribute("class", "node-subtitle");
         subtitle.setAttribute("x", "16");
         subtitle.setAttribute("y", "52");
+        subtitle.setAttribute("clip-path", `url(#${clipId})`);
         subtitle.textContent = item.node.subtitle;
         group.append(subtitle);
       }

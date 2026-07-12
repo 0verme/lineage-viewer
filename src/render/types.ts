@@ -13,6 +13,8 @@ export interface RenderNode {
 export interface RenderEdge {
   readonly key: string;
   readonly path: string;
+  readonly labelX: number;
+  readonly labelY: number;
   readonly edge: NormalizedLineageEdge;
 }
 export interface RenderScene {

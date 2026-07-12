@@ -26,6 +26,9 @@ describe("createLayeredRenderScene", () => {
     expect(nodes.get("b")!.rank).toBeLessThan(nodes.get("c")!.rank!);
     expect(nodes.get("a")!.x).toBeLessThan(nodes.get("b")!.x);
     expect(result.edges.every((edge) => !/NaN|Infinity/.test(edge.path))).toBe(true);
+    expect(
+      result.edges.every((edge) => Number.isFinite(edge.labelX) && Number.isFinite(edge.labelY)),
+    ).toBe(true);
     expect(result.width).toBeGreaterThan(0);
     expect(result.height).toBeGreaterThan(0);
   });
@@ -95,5 +98,21 @@ describe("createLayeredRenderScene", () => {
       edges: [{ source: "a", target: "a" }],
     });
     expect(result.edges[0]?.path).toMatch(/^M .* C /);
+    expect(result.edges[0]?.labelX).toBeGreaterThan(positions(result).get("a")!.x);
+  });
+
+  it("places an edge label at the routed curve midpoint", () => {
+    const result = scene({
+      nodes: [
+        { id: "a", label: "A" },
+        { id: "b", label: "B" },
+      ],
+      edges: [{ source: "a", target: "b", label: "reads from" }],
+    });
+    const edge = result.edges[0]!;
+    const nodes = positions(result);
+    expect(edge.labelX).toBeGreaterThan(nodes.get("a")!.x + nodes.get("a")!.width);
+    expect(edge.labelX).toBeLessThan(nodes.get("b")!.x);
+    expect(edge.labelY).toBe(nodes.get("a")!.y + nodes.get("a")!.height / 2);
   });
 });

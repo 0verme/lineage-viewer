@@ -35,6 +35,7 @@ export class LineageViewerElement extends ElementBase {
   private selectedId: string | null = null;
   private initialized = false;
   private readyDispatched = false;
+  private hasObservedViewport = false;
   private drag: { pointerId: number; x: number; y: number; moved: boolean } | null = null;
   private suppressClick = false;
   constructor() {
@@ -193,24 +194,7 @@ export class LineageViewerElement extends ElementBase {
       this.updateSelection(null, "data");
     this.renderCurrent(true);
     if (emitEvents && this.isConnected) this.emitDiagnostics();
-    if (
-      !this.readyDispatched &&
-      this.isConnected &&
-      (this.state === "empty" || this.state === "rendered")
-    ) {
-      this.readyDispatched = true;
-      this.dispatchEvent(
-        new CustomEvent<LineageReadyEventDetail>("lineage-ready", {
-          detail: {
-            nodeCount: this.graph?.nodes.length ?? 0,
-            edgeCount: this.graph?.edges.length ?? 0,
-            state: this.state,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-    }
+    this.dispatchReadyIfPossible();
   }
   private clearForData(): void {
     if (this.selectedId !== null) this.updateSelection(null, "data");
@@ -350,19 +334,48 @@ export class LineageViewerElement extends ElementBase {
     return { width: rect?.width ?? 0, height: rect?.height ?? 0 };
   }
   private observe(): void {
-    if (this.resizeObserver || typeof ResizeObserver === "undefined") return;
+    if (this.resizeObserver || typeof ResizeObserver === "undefined") {
+      if (typeof ResizeObserver === "undefined") {
+        this.hasObservedViewport = true;
+        this.dispatchReadyIfPossible();
+      }
+      return;
+    }
     this.resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry || this.state === "destroyed") return;
       const { width, height } = entry.contentRect;
       this.renderer?.setViewportSize(width, height);
       this.viewport?.resize({ width, height }, this.resolvedOptions.fitOnLoad);
+      this.hasObservedViewport = width > 0 && height > 0;
+      this.dispatchReadyIfPossible();
     });
     this.resizeObserver.observe(this);
   }
   private stopObserving(): void {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+  }
+  private dispatchReadyIfPossible(): void {
+    if (
+      this.readyDispatched ||
+      !this.hasObservedViewport ||
+      !this.isConnected ||
+      (this.state !== "empty" && this.state !== "rendered")
+    )
+      return;
+    this.readyDispatched = true;
+    this.dispatchEvent(
+      new CustomEvent<LineageReadyEventDetail>("lineage-ready", {
+        detail: {
+          nodeCount: this.graph?.nodes.length ?? 0,
+          edgeCount: this.graph?.edges.length ?? 0,
+          state: this.state,
+        },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
   private emitDiagnostics(): void {
     const errors = this.diagnostics.filter((item) => item.level === "error");

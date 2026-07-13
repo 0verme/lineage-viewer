@@ -15,3 +15,9 @@ export interface SceneBounds {
   readonly width: number;
   readonly height: number;
 }
+
+export interface ViewportFitOptions {
+  readonly padding?: number;
+  readonly minScale?: number;
+  readonly maxScale?: number;
+}

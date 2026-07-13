@@ -89,9 +89,9 @@ export class SvgRenderer {
       clipRect.setAttribute("height", String(item.height));
       clipPath.append(clipRect);
       const tooltip = create("title");
-      tooltip.textContent = item.node.subtitle
-        ? `${item.node.label}\n${item.node.subtitle}`
-        : item.node.label;
+      const fullLabel = metadataString(item.node.metadata, "fullLabel") ?? item.node.label;
+      const fullSubtitle = metadataString(item.node.metadata, "fullSubtitle") ?? item.node.subtitle;
+      tooltip.textContent = fullSubtitle ? `${fullLabel}\n${fullSubtitle}` : fullLabel;
       const title = create("text");
       title.setAttribute("class", "node-title");
       title.setAttribute("x", "16");
@@ -157,6 +157,10 @@ export class SvgRenderer {
 function setFlag(element: Element, name: string, active: boolean): void {
   if (active) element.setAttribute(`data-${name}`, "");
   else element.removeAttribute(`data-${name}`);
+}
+function metadataString(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key];
+  return typeof value === "string" ? value : undefined;
 }
 function create<K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] {
   return document.createElementNS(svgNs, name);

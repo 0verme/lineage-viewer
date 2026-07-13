@@ -1,12 +1,13 @@
 import {
   fitTransform,
+  fitBoundsTransform,
   focusTransform,
   identityTransform,
   panTransform,
   sanitize,
   zoomAt,
 } from "./viewport-math.js";
-import type { SceneBounds, ViewportSize, ViewportTransform } from "./viewport-types.js";
+import type { SceneBounds, ViewportFitOptions, ViewportSize, ViewportTransform } from "./viewport-types.js";
 
 export class ViewportController {
   private transform: ViewportTransform = identityTransform;
@@ -59,6 +60,10 @@ export class ViewportController {
       const fit = fitTransform(this.scene, this.viewport);
       if (fit) this.setTransform(fit);
     }
+  }
+  fitBounds(bounds: SceneBounds, options?: ViewportFitOptions): void {
+    const fit = fitBoundsTransform(bounds, this.viewport, options);
+    if (fit) this.setTransform(fit);
   }
   reset(): void {
     if (this.scene) {

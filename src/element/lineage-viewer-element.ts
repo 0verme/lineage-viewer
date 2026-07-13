@@ -1,6 +1,7 @@
 import { normalizeLineageGraphData, type NormalizedLineageGraph } from "../graph/index.js";
 import { calculateInteractionState, ViewportController } from "../interactions/index.js";
-import type { ViewportSize } from "../interactions/viewport-types.js";
+import type { SceneBounds, ViewportFitOptions, ViewportSize } from "../interactions/viewport-types.js";
+import { unionBounds } from "../interactions/viewport-math.js";
 import { createLayeredRenderScene, type RenderScene, SvgRenderer } from "../render/index.js";
 import type { LineageDiagnostic, LineageEdge, LineageGraphData } from "../schema/index.js";
 import {
@@ -107,12 +108,28 @@ export class LineageViewerElement extends ElementBase {
   fitView(): void {
     if (this.state !== "destroyed") this.viewport?.fit();
   }
+  fitBounds(bounds: SceneBounds, options?: ViewportFitOptions): void {
+    if (this.state !== "destroyed") this.viewport?.fitBounds(bounds, options);
+  }
+  fitNodes(nodeIds: readonly string[], options?: ViewportFitOptions): void {
+    if (this.state === "destroyed" || nodeIds.length === 0) return;
+    const nodes = nodeIds
+      .map((nodeId) => this.findSceneNode(nodeId))
+      .filter((node): node is RenderScene["nodes"][number] => node !== undefined);
+    if (nodes.length === 0) return;
+    const bounds = unionBounds(nodes.map((node) => node));
+    if (bounds) this.viewport?.fitBounds(bounds, options);
+  }
   resetView(): void {
     if (this.state !== "destroyed") this.viewport?.reset();
   }
   focusNode(nodeId: string): void {
     const node = this.findSceneNode(nodeId);
     if (node) this.viewport?.focus({ x: node.x + node.width / 2, y: node.y + node.height / 2 });
+  }
+  zoomBy(factor: number): void {
+    const size = this.size();
+    this.viewport?.zoom({ x: size.width / 2, y: size.height / 2 }, factor);
   }
   selectNode(nodeId: string): void {
     const id = nodeId.trim();

@@ -192,6 +192,19 @@ function columnTransformGraph(): LineageGraphData {
         label: "DAILY_REVENUE",
         fields: [{ id: "gross_revenue_usd", dataType: "decimal(18,2)" }],
       },
+      {
+        id: "raw_customers",
+        label: "RAW_CUSTOMERS",
+        fields: [
+          { id: "first_name", dataType: "string" },
+          { id: "last_name", dataType: "string" },
+        ],
+      },
+      {
+        id: "dim_customers",
+        label: "DIM_CUSTOMERS",
+        fields: [{ id: "full_name", dataType: "string" }],
+      },
     ],
     edges: [
       {
@@ -220,6 +233,24 @@ function columnTransformGraph(): LineageGraphData {
         label: "sum",
         transformType: "aggregate",
         expression: "SUM(amount_usd)",
+      },
+      {
+        source: "raw_customers",
+        target: "dim_customers",
+        sourceField: "first_name",
+        targetField: "full_name",
+        label: "concat",
+        transformType: "transform",
+        expression: "concat(first_name, last_name)",
+      },
+      {
+        source: "raw_customers",
+        target: "dim_customers",
+        sourceField: "last_name",
+        targetField: "full_name",
+        label: "concat",
+        transformType: "transform",
+        expression: "concat(first_name, last_name)",
       },
     ],
   };
@@ -324,6 +355,7 @@ export const demos: readonly LineageDemoDefinition[] = [
     description:
       "Select any field to highlight its complete upstream and downstream column lineage.",
     tags: ["columns", "field selection", "lineage"],
+    featured: true,
     viewerOptions: { viewMode: "column", highlightMode: "both" },
     graph: columnBasicGraph(),
   },
@@ -333,6 +365,7 @@ export const demos: readonly LineageDemoDefinition[] = [
     summary: "Rename, transform, and aggregate mappings with expressions.",
     description: "Inspect field-level transformation types, expressions, and labeled column edges.",
     tags: ["columns", "transforms", "expressions"],
+    featured: true,
     viewerOptions: {
       viewMode: "column",
       highlightMode: "both",

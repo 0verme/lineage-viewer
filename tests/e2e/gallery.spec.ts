@@ -7,13 +7,29 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
   });
   await page.goto("/site/?lang=en");
   await expect(page.locator("lineage-viewer")).toBeVisible();
-  await expect(page.locator("lineage-viewer .node")).toHaveCount(4);
+  await expect(page.locator("lineage-viewer .node")).toHaveCount(3);
+  await expect(page.locator("lineage-viewer .field-row")).toHaveCount(9);
+  const showcase = page.locator(".showcase-controls");
+  await expect(showcase.getByRole("button")).toHaveCount(3);
+  await expect(showcase.getByRole("button", { name: "Basic column lineage" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await showcase.getByRole("button", { name: "Column transformations" }).click();
+  await expect(page.locator("lineage-viewer .column-edge")).toHaveCount(5);
+  await expect(page.locator(".showcase-copy")).toContainText("Column transformations");
   const cards = page.locator("#demos article");
   await expect(cards).toHaveCount(10);
   await expect(cards.first()).toContainText("nodes");
-  await expect(page.getByRole("heading", { name: "Basic column lineage" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Column transformations" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Mixed table and column lineage" })).toBeVisible();
+  await expect(
+    cards.getByRole("heading", { name: "Basic column lineage", exact: true }),
+  ).toBeVisible();
+  await expect(
+    cards.getByRole("heading", { name: "Column transformations", exact: true }),
+  ).toBeVisible();
+  await expect(
+    cards.getByRole("heading", { name: "Mixed table and column lineage", exact: true }),
+  ).toBeVisible();
   await cards.nth(6).getByRole("link", { name: "Open demo" }).click();
   await expect(page).toHaveURL(/demo\.html\?id=warehouse-layers/);
   await expect(page.locator("lineage-viewer .node")).toHaveCount(20);
@@ -23,14 +39,23 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
 test("gallery column demos render fields, transforms, and view modes", async ({ page }) => {
   await page.goto("/site/demo.html?id=column-transform&lang=en");
   const viewer = page.locator("lineage-viewer");
-  await expect(viewer.locator(".field-row")).toHaveCount(6);
-  await expect(viewer.locator(".column-edge")).toHaveCount(3);
+  await expect(viewer.locator(".field-row")).toHaveCount(9);
+  await expect(viewer.locator(".column-edge")).toHaveCount(5);
   expect((await viewer.locator(".edge-label").allTextContents()).sort()).toEqual([
+    "concat",
+    "concat",
     "convert",
     "rename",
     "sum",
   ]);
   await expect(page.getByLabel("Show edge labels")).toBeChecked();
+  await viewer
+    .locator('.node[data-node-id="fct_payments"] .field-row[data-field-id="amount_usd"]')
+    .click();
+  await expect(page.locator("aside")).toContainText("Selected field");
+  await expect(page.locator("aside")).toContainText("amount_cents / 100.0");
+  await expect(page.locator("aside")).toContainText("SUM(amount_usd)");
+  await expect(page.locator("aside")).toContainText("lineage-field-click");
 
   await page.goto("/site/demo.html?id=mixed-lineage&lang=en");
   await expect(viewer.locator(".field-row")).toHaveCount(7);

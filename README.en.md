@@ -2,25 +2,76 @@
 
 [简体中文](./README.md) | English
 
-> A lightweight, framework-agnostic, embeddable lineage graph viewer built with native Web Components and SVG.
+> A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.
+
+lineage-viewer is an embeddable data lineage viewer built with native Web Components, Shadow DOM, and SVG. Pass it JSON to render interactive table-level and column-level lineage in any web page or frontend framework.
 
 [![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Alpha` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
 
-[Live demo](https://lineage.overme.cn) · [JSON Playground](https://lineage.overme.cn/playground.html) · [Quick start](#quick-start) · [中文文档](./README.md) · [Changelog](CHANGELOG.md)
+[Live demo](https://lineage.overme.cn) · [Transformation demo](https://lineage.overme.cn/demo.html?id=column-transform&lang=en) · [JSON Playground](https://lineage.overme.cn/playground.html?lang=en) · [Quick start](#quick-start) · [中文文档](./README.md)
 
-![Interactive Demo Gallery showing the multi-layer warehouse scenario](docs/assets/demo-gallery.png)
+![Interactive column-level lineage with transformation expressions](docs/assets/column-lineage.png)
 
-![Local JSON Playground with a live lineage preview](docs/assets/json-playground.png)
+## Features
+
+- Table lineage
+- Column lineage
+- Mixed lineage
+- Field dependency tracing
+- SVG rendering
+- Shadow DOM isolation
+- Zero framework dependency
+- Embeddable anywhere
+
+Column edges can carry `passthrough`, `rename`, `transform`, or `aggregate` metadata and expressions such as `SUM(amount)` or `concat(first_name, last_name)`. Selecting a field highlights its complete `upstream`, `downstream`, or `both` path.
+
+## Demo
+
+[lineage.overme.cn](https://lineage.overme.cn/?lang=en) provides switchable table, column, and transformation showcases plus a local-only [JSON Playground](https://lineage.overme.cn/playground.html?lang=en).
+
+- [Table lineage](https://lineage.overme.cn/demo.html?id=simple-pipeline&lang=en)
+- [Column lineage](https://lineage.overme.cn/demo.html?id=column-basic&lang=en)
+- [Transformation](https://lineage.overme.cn/demo.html?id=column-transform&lang=en)
+
+Each demo exposes its input JSON, field selection, path highlighting, diagnostics, and component events.
+
+## Why lineage-viewer
+
+Full data-governance platforms combine ingestion, storage, permissions, and collaboration. Many products only need a focused viewer that can be embedded into an existing interface.
+
+lineage-viewer is:
+
+- **Lightweight** — no runtime framework dependency.
+- **Embeddable** — a standard Web Component for vanilla JavaScript, React, Vue, or iframe scenarios.
+- **Customizable** — schema-driven and ready for existing table, job, dataset, or field lineage JSON.
+
+It does not parse SQL, discover lineage, or store metadata. Those concerns can be added through independent adapters.
+
+## Quick start
+
+After the npm release:
+
+```sh
+npm install lineage-viewer
+```
+
+```html
+<lineage-viewer></lineage-viewer>
+```
+
+```ts
+import "lineage-viewer/define";
+```
 
 ## Project status
 
-This project is Alpha / under active development. The current version is `0.1.0-alpha.1`; the API may still change. The npm Alpha publication is pending trusted-publisher setup.
+This project is Alpha / under active development. The pending release is `0.1.0-alpha.2`; the API may still change. The npm Alpha publication is pending trusted-publisher setup.
 
 ## Live demo
 
 The production demo is [lineage.overme.cn](https://lineage.overme.cn). The site supports Simplified Chinese and English, defaults to Chinese, and accepts `?lang=zh-CN` or `?lang=en`. The language switcher stores the preference and preserves the language parameter on the current page. Stable demo URLs use `/demo.html?id=<demo-id>`; the Playground is `/playground.html`.
 
-## Core features
+## Technical capabilities
 
 - TypeScript, native browser APIs, ESM, Web Components, Shadow DOM, and SVG.
 - JSON validation, normalization, stable diagnostics, and strict/lenient modes.
@@ -39,12 +90,12 @@ Its technical principles are TypeScript strict mode, native browser APIs and ESM
 
 Use lineage-viewer to visualize standardized nodes and edges for warehouses, ETL pipelines, jobs, datasets, or fields. It is a viewer, not a lineage-extraction or data-governance platform: it does not parse SQL, discover lineage, scan databases or schedulers, store metadata, manage users, edit graphs, or replace Apache Atlas or DataHub.
 
-## Quick start
+## Complete integration example
 
-After publication, install the Alpha release from npm:
+Before the Alpha publication, run `npm pack` and install the generated tarball. After publication:
 
 ```sh
-npm install lineage-viewer@alpha
+npm install lineage-viewer
 ```
 
 ```html

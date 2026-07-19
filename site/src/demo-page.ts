@@ -1,5 +1,12 @@
 import { defineLineageViewer } from "lineage-viewer";
-import type { LineageNode, LineageViewerElement, LineageViewerOptions } from "lineage-viewer";
+import type {
+  LineageEdge,
+  LineageField,
+  LineageNode,
+  LineageSelectionChangeEventDetail,
+  LineageViewerElement,
+  LineageViewerOptions,
+} from "lineage-viewer";
 import { cloneGraph, getLocalizedDemoData, type LineageDemoDefinition } from "./demo-registry.js";
 import { append, element, installStyles, link, siteFooter, siteNavigation } from "./dom.js";
 import { buildLocalizedUrl, getLanguage, languageSwitcher, localizeDocument, t } from "./i18n.js";
@@ -152,6 +159,7 @@ function render(current: LineageDemoDefinition): void {
   [
     "lineage-ready",
     "lineage-node-click",
+    "lineage-field-click",
     "lineage-selection-change",
     "lineage-error",
     "lineage-warning",
@@ -166,9 +174,12 @@ function render(current: LineageDemoDefinition): void {
     }),
   );
   viewer.addEventListener("lineage-selection-change", (event) => {
-    const node = (event as CustomEvent<{ node: LineageNode | null }>).detail.node;
-    selected.textContent = t("selected", { value: node?.id ?? t("noSelectedNode") });
-    renderNode(nodeContent, node);
+    const detail = (event as CustomEvent<LineageSelectionChangeEventDetail>).detail;
+    const value = detail.selectedField
+      ? `${detail.selectedField.nodeId}.${detail.selectedField.fieldId}`
+      : (detail.node?.id ?? t("noSelectedNode"));
+    selected.textContent = t("selected", { value });
+    renderSelection(nodeContent, detail.node, detail.field, current.graph.edges);
   });
   queueMicrotask(refreshDiagnostics);
 }
@@ -215,7 +226,12 @@ function panel(title: string): HTMLElement {
   value.append(element("h2", title));
   return value;
 }
-function renderNode(target: HTMLElement, node: LineageNode | null): void {
+function renderSelection(
+  target: HTMLElement,
+  node: LineageNode | null,
+  field: LineageField | null,
+  edges: readonly LineageEdge[],
+): void {
   target.replaceChildren();
   if (!node) {
     target.textContent = t("noSelectedNode");
@@ -233,6 +249,46 @@ function renderNode(target: HTMLElement, node: LineageNode | null): void {
     row.className = "detail";
     append(row, element("strong", key), element("span", value));
     target.append(row);
+  }
+  if (!field) return;
+  const heading = element("h3", t("selectedField"));
+  target.append(heading);
+  for (const [key, value] of [
+    [t("id"), field.id],
+    [t("label"), field.label ?? field.id],
+    [t("dataType"), field.dataType ?? "—"],
+    [t("description"), field.description ?? "—"],
+  ]) {
+    const row = element("div");
+    row.className = "detail";
+    append(row, element("strong", key), element("span", value));
+    target.append(row);
+  }
+  const mappings = edges.filter(
+    (edge) =>
+      (edge.source === node.id && edge.sourceField === field.id) ||
+      (edge.target === node.id && edge.targetField === field.id),
+  );
+  target.append(element("h3", t("transforms")));
+  if (mappings.length === 0) {
+    target.append(element("p", t("noTransforms")));
+    return;
+  }
+  for (const edge of mappings) {
+    const mapping = element("div");
+    mapping.className = "transform-detail";
+    for (const [key, value] of [
+      [t("source"), `${edge.source}.${edge.sourceField ?? "—"}`],
+      [t("target"), `${edge.target}.${edge.targetField ?? "—"}`],
+      [t("transformType"), edge.transformType ?? "—"],
+      [t("expression"), edge.expression ?? "—"],
+    ]) {
+      const row = element("div");
+      row.className = "detail";
+      append(row, element("strong", key), element("span", value));
+      mapping.append(row);
+    }
+    target.append(mapping);
   }
 }
 function safeJson(value: unknown): string {

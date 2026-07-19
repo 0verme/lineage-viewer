@@ -2,7 +2,7 @@
 
 ## Positioning
 
-> A lightweight, framework-agnostic, embeddable lineage graph viewer built with native Web Components and SVG.
+> A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.
 
 lineage-viewer receives standardized lineage nodes and edges, validates and normalizes them, computes stable layout, renders a lineage graph, and offers viewing, selection, highlighting, focus, and viewport capabilities through a standard Web Component API. Host applications receive interaction results through events.
 

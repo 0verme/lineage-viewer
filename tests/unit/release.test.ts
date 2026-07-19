@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 
 import {
   extractChangelogEntry,
@@ -8,6 +9,27 @@ import {
 } from "../../scripts/release/release-utils.mjs";
 
 describe("release helpers", () => {
+  it("publishes discoverable package metadata for the alpha release", () => {
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    ) as {
+      version: string;
+      keywords: string[];
+      engines: { node: string };
+      files: string[];
+    };
+    expect(packageJson.version).toBe("0.1.0-alpha.2");
+    expect(packageJson.keywords).toEqual([
+      "data-lineage",
+      "column-lineage",
+      "metadata",
+      "data-catalog",
+      "web-component",
+      "svg",
+    ]);
+    expect(packageJson.engines.node).toBe(">=22.13.0");
+    expect(packageJson.files).toContain("docs/assets/column-lineage.png");
+  });
   it("accepts a matching semantic-version tag", () => {
     expect(validateVersionTag("v1.2.3", "1.2.3")).toBe("1.2.3");
   });

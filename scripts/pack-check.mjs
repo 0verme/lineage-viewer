@@ -43,6 +43,7 @@ const required = [
   "README.md",
   "README.en.md",
   "README.zh-CN.md",
+  "docs/assets/column-lineage.png",
   "dist/define.d.ts",
   "dist/define.js",
   "dist/index.d.ts",

@@ -35,12 +35,65 @@ append(
   link(buildLocalizedUrl("./playground.html"), t("tryJson")),
   link("#quick-start", t("quickStart")),
 );
+const showcaseDemos = demos.filter((demo) => demo.featured);
+const initialDemo = showcaseDemos.find((demo) => demo.id === "column-basic") ?? showcaseDemos[0]!;
+const showcaseLabel = element("p", t("showcase"));
+showcaseLabel.className = "eyebrow";
+const showcaseHint = element("p", t("showcaseHint"));
+showcaseHint.className = "muted";
+const showcaseControls = element("div");
+showcaseControls.className = "showcase-controls";
+const showcaseTitle = element("h2", initialDemo.title);
+const showcaseSummary = element("p", initialDemo.summary);
+showcaseSummary.className = "muted";
 const viewerCard = element("div");
 viewerCard.className = "viewer-card";
 const viewer = document.createElement("lineage-viewer") as LineageViewerElement;
-viewer.data = cloneGraph(demos[0]!.graph);
+viewer.data = cloneGraph(initialDemo.graph);
+viewer.setOptions({ fitOnLoad: true, ...initialDemo.viewerOptions });
 viewerCard.append(viewer);
-append(hero, eyebrow, title, lead, actions, viewerCard);
+const openShowcase = link(
+  buildLocalizedUrl(`./demo.html?id=${encodeURIComponent(initialDemo.id)}`),
+  t("openDemo"),
+);
+for (const demo of showcaseDemos) {
+  const control = element("button", demo.title);
+  control.type = "button";
+  control.dataset["demoId"] = demo.id;
+  control.setAttribute("aria-pressed", String(demo.id === initialDemo.id));
+  control.addEventListener("click", () => {
+    viewer.clearSelection();
+    viewer.data = cloneGraph(demo.graph);
+    viewer.setOptions({
+      viewMode: "mixed",
+      highlightMode: "connected",
+      showEdgeLabels: false,
+      showSelfLoops: false,
+      ...demo.viewerOptions,
+    });
+    showcaseTitle.textContent = demo.title;
+    showcaseSummary.textContent = demo.summary;
+    openShowcase.href = buildLocalizedUrl(`./demo.html?id=${encodeURIComponent(demo.id)}`);
+    for (const button of showcaseControls.querySelectorAll("button"))
+      button.setAttribute("aria-pressed", String(button === control));
+  });
+  showcaseControls.append(control);
+}
+const showcaseCopy = element("div");
+showcaseCopy.className = "showcase-copy";
+append(showcaseCopy, showcaseTitle, showcaseSummary, openShowcase);
+append(
+  hero,
+  eyebrow,
+  title,
+  lead,
+  actions,
+  showcaseLabel,
+  showcaseHint,
+  showcaseControls,
+  viewerCard,
+  showcaseCopy,
+);
 const gallery = element("section");
 gallery.id = "demos";
 append(gallery, element("p", t("gallery")), element("h2", t("galleryHeading")));

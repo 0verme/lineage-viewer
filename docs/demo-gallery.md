@@ -18,7 +18,8 @@ Each stable URL has the form `demo.html?id=<demo-id>`. The detail page exposes t
 
 Run `npm run build:site` to produce `site-dist/`, then `npm run preview:site` to inspect it. Vite uses a relative asset base so the generated multi-page site works under a custom domain and `demo.html` refreshes without an SPA fallback. `.github/workflows/cloudflare.yml` builds the site and deploys it as Cloudflare Workers Static Assets on `main` pushes and manual dispatch.
 
-Run `npm run screenshot:gallery` only when intentionally updating `docs/assets/demo-gallery.png`.
+Run `npm run screenshot:gallery` only when intentionally updating
+`docs/assets/column-lineage.png`.
 
 ## Standalone column lineage examples
 

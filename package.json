@@ -1,7 +1,7 @@
 {
   "name": "lineage-viewer",
-  "version": "0.1.0-alpha.1",
-  "description": "A lightweight, framework-agnostic, embeddable lineage graph viewer.",
+  "version": "0.1.0-alpha.2",
+  "description": "A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.",
   "homepage": "https://lineage.overme.cn",
   "repository": {
     "type": "git",
@@ -12,6 +12,14 @@
   },
   "type": "module",
   "license": "Apache-2.0",
+  "keywords": [
+    "data-lineage",
+    "column-lineage",
+    "metadata",
+    "data-catalog",
+    "web-component",
+    "svg"
+  ],
   "sideEffects": [
     "./dist/define.js"
   ],
@@ -34,6 +42,7 @@
     "README.md",
     "README.en.md",
     "README.zh-CN.md",
+    "docs/assets/column-lineage.png",
     "LICENSE",
     "NOTICE"
   ],

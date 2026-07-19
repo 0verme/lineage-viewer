@@ -31,6 +31,16 @@ describe("demo registry", () => {
     expect(findDemo("column-transform")?.graph.edges.every((edge) => edge.transformType)).toBe(
       true,
     );
+    expect(demos.filter((demo) => demo.featured).map((demo) => demo.id)).toEqual([
+      "simple-pipeline",
+      "column-basic",
+      "column-transform",
+    ]);
+    expect(
+      findDemo("column-transform")?.graph.edges.some(
+        (edge) => edge.expression === "concat(first_name, last_name)",
+      ),
+    ).toBe(true);
     expect(
       findDemo("mixed-lineage")?.graph.edges.some(
         (edge) => edge.sourceField === undefined && edge.targetField === undefined,

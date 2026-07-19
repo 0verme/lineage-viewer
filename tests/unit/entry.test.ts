@@ -9,7 +9,7 @@ describe("package entry", () => {
     const registryBeforeImport = Reflect.get(globalThis, "customElements");
     const entry = await import("../../src/index.js");
 
-    expect(entry.packageVersion).toBe("0.1.0-alpha.1");
+    expect(entry.packageVersion).toBe("0.1.0-alpha.2");
     expect(Reflect.get(globalThis, "customElements")).toBe(registryBeforeImport);
     expect(field.id).toBe("customer_id");
     expect(transformType).toBe("passthrough");

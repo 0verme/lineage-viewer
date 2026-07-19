@@ -1,68 +1,71 @@
 # lineage-viewer
 
-## 字段级血缘
-
-lineage-viewer 现已支持表级、字段级和混合血缘，同时保持旧版仅含 `nodes` / `edges` 的 JSON 兼容。
-
-- 字段作为表节点内部行，通过 `fields` 定义；字段不是独立图节点。
-- 字段边通过成对的 `sourceField` / `targetField` 连接，可附带 `transformType` 和 `expression`。
-- `viewMode` 支持 `table`、`column`、`mixed`，默认值为 `mixed`。
-- 点击字段可按 `upstream`、`downstream` 或 `both` 高亮完整路径。
-- `search()` 支持表名、字段名搜索和 `dataType` 过滤。
-
-```ts
-viewer.data = {
-  nodes: [
-    {
-      id: "raw_orders",
-      label: "RAW_ORDERS",
-      fields: [{ id: "amount_cents", dataType: "bigint" }],
-    },
-    {
-      id: "fct_orders",
-      label: "FCT_ORDERS",
-      fields: [{ id: "amount_usd", dataType: "decimal(18,2)" }],
-    },
-  ],
-  edges: [
-    {
-      source: "raw_orders",
-      target: "fct_orders",
-      sourceField: "amount_cents",
-      targetField: "amount_usd",
-      transformType: "transform",
-      expression: "amount_cents / 100.0",
-    },
-  ],
-};
-
-viewer.options = { viewMode: "column", highlightMode: "both" };
-viewer.search("", { dataType: "bigint" });
-```
-
-完整说明见[字段级血缘指南](docs/column-lineage.md)和[公共 API](docs/public-api.md)。可运行示例：
-
-- [`examples/column-basic/`](examples/column-basic/)
-- [`examples/column-transform/`](examples/column-transform/)
-- [`examples/mixed-lineage/`](examples/mixed-lineage/)
-
 简体中文 | [English](./README.en.md)
 
-一个轻量、框架无关、可嵌入的数据血缘图查看器。
+> A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.
 
-支持原生 Web Component、Shadow DOM 和 SVG，零运行时依赖。只需传入 JSON，即可在任意网页、前端框架或 iframe 中展示可交互的数据血缘图。
+lineage-viewer 是一个轻量、无框架依赖、可嵌入的数据血缘查看器。它使用原生 Web Component、Shadow DOM 和 SVG，仅需传入 JSON，即可在任意网页或前端框架中展示交互式表级与字段级血缘。
 
 [![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Alpha` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
 
-[在线演示](https://lineage.overme.cn) · [JSON Playground](https://lineage.overme.cn/playground.html) · [快速开始](#快速开始) · [英文文档](./README.en.md) · [发布说明](CHANGELOG.md)
+[在线演示](https://lineage.overme.cn) · [字段转换示例](https://lineage.overme.cn/demo.html?id=column-transform) · [JSON Playground](https://lineage.overme.cn/playground.html) · [快速开始](#快速开始) · [英文文档](./README.en.md)
 
-![lineage-viewer 演示画廊：多层数仓血缘场景](docs/assets/demo-gallery.png)
+![lineage-viewer 字段级血缘与转换表达式演示](docs/assets/column-lineage.png)
 
-![lineage-viewer JSON Playground：本地 JSON 编辑与实时预览](docs/assets/json-playground.png)
+## Features
+
+- Table lineage
+- Column lineage
+- Mixed lineage
+- Field dependency tracing
+- SVG rendering
+- Shadow DOM isolation
+- Zero framework dependency
+- Embeddable anywhere
+
+字段边支持 `passthrough`、`rename`、`transform` 和 `aggregate` 元数据，以及 `SUM(amount)`、`concat(first_name, last_name)` 等表达式。点击字段可按 `upstream`、`downstream` 或 `both` 高亮完整路径。
+
+## Demo
+
+[lineage.overme.cn](https://lineage.overme.cn) 提供可切换的表级、字段级和 Transformation 展示，以及只在浏览器本地处理数据的 [JSON Playground](https://lineage.overme.cn/playground.html)。
+
+- [Table lineage](https://lineage.overme.cn/demo.html?id=simple-pipeline)
+- [Column lineage](https://lineage.overme.cn/demo.html?id=column-basic)
+- [Transformation](https://lineage.overme.cn/demo.html?id=column-transform)
+
+每个 Demo 都可查看输入 JSON、点击字段、高亮路径，并检查组件派发的事件。
+
+## Why lineage-viewer
+
+完整的数据治理平台通常同时包含采集、存储、权限和协作能力，但很多产品只需要一个可以嵌入现有页面的血缘 Viewer。
+
+lineage-viewer 专注于：
+
+- **Lightweight**：零运行时框架依赖。
+- **Embeddable**：标准 Web Component，可用于原生 JavaScript、React、Vue 或 iframe 场景。
+- **Customizable**：Schema 驱动，接收已有的表、任务、数据集或字段血缘 JSON。
+
+它不负责 SQL 解析、自动发现血缘或元数据存储；这些能力可以通过独立 Adapter 扩展。
+
+## 快速开始
+
+npm 发布后可直接安装：
+
+```sh
+npm install lineage-viewer
+```
+
+```html
+<lineage-viewer></lineage-viewer>
+```
+
+```ts
+import "lineage-viewer/define";
+```
 
 ## 项目状态
 
-项目目前处于 Alpha / 积极开发中。当前版本为 `0.1.0-alpha.1`，API 在后续版本中仍可能调整。npm Alpha 发布待完成 trusted publisher 配置后触发。
+项目目前处于 Alpha / 积极开发中。当前待发布版本为 `0.1.0-alpha.2`，API 在后续版本中仍可能调整。npm Alpha 发布待完成 trusted publisher 配置后触发。
 
 ## 在线演示
 
@@ -86,12 +89,12 @@ viewer.search("", { dataType: "bigint" });
 
 适合已经拥有标准化节点与边数据的数仓、ETL、任务、数据集或字段血缘展示。它是查看器，不负责 SQL 解析、自动发现血缘、扫描数据库或调度器、元数据存储、权限管理、协作和通用图编辑，也不替代 Apache Atlas 或 DataHub。
 
-## 快速开始
+## 完整集成示例
 
-发布完成后可通过以下命令安装 Alpha 版本：
+Alpha 发布完成前，可运行 `npm pack` 并安装生成的 tarball。发布后使用：
 
 ```sh
-npm install lineage-viewer@alpha
+npm install lineage-viewer
 ```
 
 ```html

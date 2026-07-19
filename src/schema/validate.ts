@@ -1,5 +1,10 @@
 import type { LineageDiagnostic } from "./diagnostics.js";
-import type { LineageEdgeType, LineageNodeStatus, LineageNodeType } from "./types.js";
+import type {
+  LineageEdgeType,
+  LineageNodeStatus,
+  LineageNodeType,
+  LineageTransformType,
+} from "./types.js";
 
 const nodeTypes: readonly LineageNodeType[] = [
   "table",
@@ -17,6 +22,13 @@ const nodeStatuses: readonly LineageNodeStatus[] = [
   "muted",
 ];
 const edgeTypes: readonly LineageEdgeType[] = ["lineage", "dependency", "reference", "custom"];
+const transformTypes: readonly LineageTransformType[] = [
+  "passthrough",
+  "rename",
+  "transform",
+  "aggregate",
+  "unknown",
+];
 
 export function isPlainRecord(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
@@ -34,6 +46,10 @@ export function isNodeStatus(value: unknown): value is LineageNodeStatus {
 
 export function isEdgeType(value: unknown): value is LineageEdgeType {
   return typeof value === "string" && edgeTypes.includes(value as LineageEdgeType);
+}
+
+export function isTransformType(value: unknown): value is LineageTransformType {
+  return typeof value === "string" && transformTypes.includes(value as LineageTransformType);
 }
 
 export function isNonEmptyString(value: unknown): value is string {

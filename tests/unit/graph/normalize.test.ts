@@ -58,6 +58,131 @@ describe("graph normalization", () => {
     );
   });
 
+  it("requires sourceField and targetField to be provided together", () => {
+    const result = normalizeLineageGraphData({
+      nodes: [
+        { id: "a", label: "A", fields: [{ id: "id" }] },
+        { id: "b", label: "B", fields: [{ id: "id" }] },
+      ],
+      edges: [{ id: "unpaired", source: "a", target: "b", sourceField: "id" }],
+    });
+
+    expect(result.graph?.edges).toEqual([]);
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "UNPAIRED_FIELD_REFERENCE",
+        edgeId: "unpaired",
+      }),
+    ]);
+  });
+
+  it.each([
+    ["missing source", "missing", "available", ["MISSING_SOURCE_FIELD"]],
+    ["missing target", "available", "missing", ["MISSING_TARGET_FIELD"]],
+    ["missing both", "missing", "missing", ["MISSING_SOURCE_FIELD", "MISSING_TARGET_FIELD"]],
+  ] as const)("reports %s field references", (_case, sourceField, targetField, expectedCodes) => {
+    const data = {
+      nodes: [
+        { id: "a", label: "A", fields: [{ id: "available" }] },
+        { id: "b", label: "B", fields: [{ id: "available" }] },
+      ],
+      edges: [
+        {
+          id: "missing-field",
+          source: "a",
+          target: "b",
+          sourceField,
+          targetField,
+        },
+      ],
+    };
+    const result = normalizeLineageGraphData(data);
+
+    expect(result.graph?.edges).toEqual([]);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(expectedCodes);
+    for (const [index, code] of expectedCodes.entries()) {
+      expect(result.diagnostics[index]).toMatchObject({ code, edgeId: "missing-field" });
+    }
+    expect(normalizeLineageGraphData(data, { validationMode: "strict" }).graph).toBeNull();
+  });
+
+  it("keeps distinct column mappings and deduplicates identical mappings", () => {
+    const result = normalizeLineageGraphData({
+      nodes: [
+        {
+          id: "a",
+          label: "A",
+          fields: [{ id: "first" }, { id: "second" }],
+        },
+        {
+          id: "b",
+          label: "B",
+          fields: [{ id: "first" }, { id: "second" }],
+        },
+      ],
+      edges: [
+        {
+          id: "first",
+          source: "a",
+          target: "b",
+          sourceField: "first",
+          targetField: "first",
+        },
+        {
+          id: "second",
+          source: "a",
+          target: "b",
+          sourceField: "second",
+          targetField: "second",
+        },
+        {
+          id: "duplicate",
+          source: "a",
+          target: "b",
+          sourceField: "first",
+          targetField: "first",
+          metadata: { duplicate: true },
+        },
+      ],
+    });
+
+    expect(result.graph?.edges).toHaveLength(2);
+    expect(result.graph?.edges.map((edge) => [edge.sourceField, edge.targetField])).toEqual([
+      ["first", "first"],
+      ["second", "second"],
+    ]);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "DUPLICATE_EDGE", edgeId: "duplicate" }),
+    );
+  });
+
+  it("preserves legacy table edges without field references", () => {
+    const result = normalizeLineageGraphData({
+      nodes: [
+        { id: "a", label: "A" },
+        { id: "b", label: "B" },
+      ],
+      edges: [{ id: "legacy", source: "a", target: "b", label: "loads" }],
+    });
+
+    expect(result).toMatchObject({ hasErrors: false, diagnostics: [] });
+    expect(result.graph?.nodes).toMatchObject([
+      { id: "a", label: "A" },
+      { id: "b", label: "B" },
+    ]);
+    expect(result.graph?.edges).toMatchObject([
+      {
+        id: "legacy",
+        source: "a",
+        target: "b",
+        type: "lineage",
+        label: "loads",
+      },
+    ]);
+    expect(result.graph?.edges[0]?.sourceField).toBeUndefined();
+    expect(result.graph?.edges[0]?.targetField).toBeUndefined();
+  });
+
   it("hides self loops by default and preserves them on request", () => {
     const data = { nodes: [{ id: "a", label: "A" }], edges: [{ source: "a", target: "a" }] };
     expect(normalizeLineageGraphData(data).graph?.edges).toEqual([]);

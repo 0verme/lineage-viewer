@@ -7,7 +7,7 @@ import type {
   NormalizedLineageNode,
 } from "./types.js";
 import { sortDiagnostics, type LineageDiagnostic } from "../schema/diagnostics.js";
-import type { LineageEdgeType } from "../schema/types.js";
+import type { LineageEdgeType, LineageField, LineageTransformType } from "../schema/types.js";
 import {
   invalid,
   isEdgeType,
@@ -15,6 +15,7 @@ import {
   isNodeType,
   isNonEmptyString,
   isPlainRecord,
+  isTransformType,
   validateLineageGraphData,
 } from "../schema/validate.js";
 
@@ -151,8 +152,67 @@ function normalizeNode(
   copyOptionalString(candidate, node, "subtitle");
   if (candidate["type"] !== undefined) node.type = candidate["type"];
   if (candidate["status"] !== undefined) node.status = candidate["status"];
+  const fields = normalizeFields(candidate["fields"], id, diagnostics);
+  if (fields !== undefined) node.fields = fields;
   if (candidate["metadata"] !== undefined) node.metadata = candidate["metadata"];
   return node;
+}
+
+function normalizeFields(
+  candidate: unknown,
+  nodeId: string,
+  diagnostics: LineageDiagnostic[],
+): LineageField[] | undefined {
+  if (candidate === undefined) return undefined;
+  if (!Array.isArray(candidate)) {
+    diagnostics.push(invalid("Node fields must be an array when provided.", nodeId));
+    return undefined;
+  }
+  const fields: LineageField[] = [];
+  const fieldIds = new Set<string>();
+  for (const value of candidate) {
+    const field = normalizeField(value, nodeId, diagnostics);
+    if (field === null) continue;
+    if (fieldIds.has(field.id)) {
+      diagnostics.push({
+        level: "error",
+        code: "DUPLICATE_FIELD_ID",
+        nodeId,
+        message: `Duplicate field id "${field.id}" on node "${nodeId}"; first valid occurrence wins.`,
+      });
+      continue;
+    }
+    fieldIds.add(field.id);
+    fields.push(field);
+  }
+  return fields;
+}
+
+function normalizeField(
+  candidate: unknown,
+  nodeId: string,
+  diagnostics: LineageDiagnostic[],
+): LineageField | null {
+  if (!isPlainRecord(candidate)) {
+    diagnostics.push(invalid("A field must be a plain object.", nodeId));
+    return null;
+  }
+  const id = normalizeString(candidate["id"]);
+  if (
+    id === null ||
+    !isOptionalString(candidate["label"]) ||
+    !isOptionalString(candidate["dataType"]) ||
+    !isOptionalString(candidate["description"])
+  ) {
+    diagnostics.push(invalid("A field has invalid required or typed fields.", nodeId));
+    return null;
+  }
+  return {
+    id,
+    ...(candidate["label"] === undefined ? {} : { label: candidate["label"] }),
+    ...(candidate["dataType"] === undefined ? {} : { dataType: candidate["dataType"] }),
+    ...(candidate["description"] === undefined ? {} : { description: candidate["description"] }),
+  };
 }
 
 function normalizeEdge(
@@ -177,15 +237,29 @@ function normalizeEdge(
   const source = normalizeString(candidate["source"]);
   const target = normalizeString(candidate["target"]);
   const edgeId = normalizeOptionalId(candidate["id"]);
+  const sourceFieldProvided = candidate["sourceField"] !== undefined;
+  const targetFieldProvided = candidate["targetField"] !== undefined;
+  const sourceField = normalizeOptionalId(candidate["sourceField"]);
+  const targetField = normalizeOptionalId(candidate["targetField"]);
+  const fieldReferencesPaired = sourceFieldProvided === targetFieldProvided;
   const hasInvalidField =
     edgeId === null ||
     (candidate["label"] !== undefined && typeof candidate["label"] !== "string") ||
     (candidate["type"] !== undefined && !isEdgeType(candidate["type"])) ||
+    (candidate["transformType"] !== undefined && !isTransformType(candidate["transformType"])) ||
+    (candidate["expression"] !== undefined && typeof candidate["expression"] !== "string") ||
     (candidate["metadata"] !== undefined && !isPlainRecord(candidate["metadata"]));
   if (edgeId === null)
     diagnostics.push(invalid("An edge id must be a non-empty string when provided."));
   if (hasInvalidField && edgeId !== null)
     diagnostics.push(invalid("An edge has invalid typed fields.", undefined, edgeId));
+  if (!fieldReferencesPaired)
+    diagnostics.push({
+      level: "error",
+      code: "UNPAIRED_FIELD_REFERENCE",
+      message: "sourceField and targetField must either both be provided or both be omitted.",
+      ...(typeof edgeId === "string" ? { edgeId } : {}),
+    });
   const validSource = source !== null && nodeById.has(source);
   const validTarget = target !== null && nodeById.has(target);
   if (!validSource)
@@ -202,18 +276,60 @@ function normalizeEdge(
       message: "Edge target is missing, invalid, or does not reference a valid node.",
       ...(typeof edgeId === "string" ? { edgeId } : {}),
     });
-  if (source === null || target === null || hasInvalidField || !validSource || !validTarget)
+  const validSourceField =
+    !sourceFieldProvided ||
+    (typeof sourceField === "string" &&
+      validSource &&
+      hasField(nodeById.get(source ?? ""), sourceField));
+  const validTargetField =
+    !targetFieldProvided ||
+    (typeof targetField === "string" &&
+      validTarget &&
+      hasField(nodeById.get(target ?? ""), targetField));
+  if (fieldReferencesPaired && sourceFieldProvided && !validSourceField)
+    diagnostics.push({
+      level: "error",
+      code: "MISSING_SOURCE_FIELD",
+      message: "Edge sourceField is missing, invalid, or does not reference its source node.",
+      ...(typeof edgeId === "string" ? { edgeId } : {}),
+    });
+  if (fieldReferencesPaired && targetFieldProvided && !validTargetField)
+    diagnostics.push({
+      level: "error",
+      code: "MISSING_TARGET_FIELD",
+      message: "Edge targetField is missing, invalid, or does not reference its target node.",
+      ...(typeof edgeId === "string" ? { edgeId } : {}),
+    });
+  if (
+    source === null ||
+    target === null ||
+    hasInvalidField ||
+    !validSource ||
+    !validTarget ||
+    !fieldReferencesPaired ||
+    !validSourceField ||
+    !validTargetField
+  )
     return null;
   const type = (candidate["type"] ?? "lineage") as LineageEdgeType;
   const label = (candidate["label"] ?? "") as string;
+  const normalizedSourceField = typeof sourceField === "string" ? sourceField : undefined;
+  const normalizedTargetField = typeof targetField === "string" ? targetField : undefined;
   const edge: NormalizedLineageEdge = {
     source,
     target,
     type,
     label,
-    key: edgeKey(source, target, type, label),
+    key: edgeKey(source, target, type, label, normalizedSourceField, normalizedTargetField),
   };
   if (edgeId !== undefined) edge.id = edgeId;
+  if (normalizedSourceField !== undefined && normalizedTargetField !== undefined) {
+    edge.sourceField = normalizedSourceField;
+    edge.targetField = normalizedTargetField;
+  }
+  if (candidate["transformType"] !== undefined)
+    edge.transformType = candidate["transformType"] as LineageTransformType;
+  if (candidate["expression"] !== undefined) edge.expression = candidate["expression"] as string;
   if (candidate["metadata"] !== undefined)
     edge.metadata = candidate["metadata"] as Record<string, unknown>;
   return edge;
@@ -227,6 +343,14 @@ function normalizeOptionalId(value: unknown): string | null | undefined {
   return value === undefined ? undefined : normalizeString(value);
 }
 
+function isOptionalString(value: unknown): value is string | undefined {
+  return value === undefined || typeof value === "string";
+}
+
+function hasField(node: NormalizedLineageNode | undefined, fieldId: string): boolean {
+  return node?.fields?.some((field) => field.id === fieldId) ?? false;
+}
+
 function copyOptionalString(
   source: Record<string, unknown>,
   target: NormalizedLineageNode,
@@ -235,8 +359,17 @@ function copyOptionalString(
   if (source[key] !== undefined && typeof source[key] === "string") target[key] = source[key];
 }
 
-function edgeKey(source: string, target: string, type: LineageEdgeType, label: string): string {
-  return JSON.stringify([source, target, type, label]);
+function edgeKey(
+  source: string,
+  target: string,
+  type: LineageEdgeType,
+  label: string,
+  sourceField: string | undefined,
+  targetField: string | undefined,
+): string {
+  return sourceField === undefined || targetField === undefined
+    ? JSON.stringify([source, target, type, label])
+    : JSON.stringify([source, target, sourceField, targetField, type, label]);
 }
 
 function compareNodes(left: NormalizedLineageNode, right: NormalizedLineageNode): number {
@@ -247,6 +380,8 @@ function compareEdges(left: NormalizedLineageEdge, right: NormalizedLineageEdge)
   return (
     left.source.localeCompare(right.source) ||
     left.target.localeCompare(right.target) ||
+    (left.sourceField ?? "").localeCompare(right.sourceField ?? "") ||
+    (left.targetField ?? "").localeCompare(right.targetField ?? "") ||
     left.type.localeCompare(right.type) ||
     left.label.localeCompare(right.label) ||
     (left.id ?? "").localeCompare(right.id ?? "")

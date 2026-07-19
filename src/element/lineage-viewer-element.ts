@@ -1,6 +1,10 @@
 import { normalizeLineageGraphData, type NormalizedLineageGraph } from "../graph/index.js";
 import { calculateInteractionState, ViewportController } from "../interactions/index.js";
-import type { SceneBounds, ViewportFitOptions, ViewportSize } from "../interactions/viewport-types.js";
+import type {
+  SceneBounds,
+  ViewportFitOptions,
+  ViewportSize,
+} from "../interactions/viewport-types.js";
 import { unionBounds } from "../interactions/viewport-math.js";
 import { createLayeredRenderScene, type RenderScene, SvgRenderer } from "../render/index.js";
 import type { LineageDiagnostic, LineageEdge, LineageGraphData } from "../schema/index.js";
@@ -406,8 +410,12 @@ function toPublicEdge(edge: NormalizedLineageGraph["edges"][number]): LineageEdg
     source: edge.source,
     target: edge.target,
     ...(edge.id === undefined ? {} : { id: edge.id }),
+    ...(edge.sourceField === undefined ? {} : { sourceField: edge.sourceField }),
+    ...(edge.targetField === undefined ? {} : { targetField: edge.targetField }),
     ...(edge.label === "" ? {} : { label: edge.label }),
     ...(edge.type === "lineage" ? {} : { type: edge.type }),
+    ...(edge.transformType === undefined ? {} : { transformType: edge.transformType }),
+    ...(edge.expression === undefined ? {} : { expression: edge.expression }),
     ...(edge.metadata === undefined ? {} : { metadata: edge.metadata }),
   };
 }

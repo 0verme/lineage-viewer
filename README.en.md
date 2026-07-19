@@ -54,7 +54,7 @@ datasets, schemas, and column lineage facets into the same Viewer schema.
 
 ## Quick start
 
-After the npm release:
+Install the published package from npm:
 
 ```sh
 npm install lineage-viewer
@@ -70,7 +70,7 @@ import "lineage-viewer/define";
 
 ## Project status
 
-This project is Alpha / under active development. The pending release is `0.1.0-alpha.2`; the API may still change. The npm Alpha publication is pending trusted-publisher setup.
+This project is Alpha / under active development. The current npm version is `0.1.0-alpha.2`; the API may still change.
 
 ## Live demo
 
@@ -97,7 +97,7 @@ Use lineage-viewer to visualize standardized nodes and edges for warehouses, ETL
 
 ## Complete integration example
 
-Before the Alpha publication, run `npm pack` and install the generated tarball. After publication:
+Install from npm:
 
 ```sh
 npm install lineage-viewer
@@ -130,7 +130,7 @@ lineage-viewer {
 
 ## Installation
 
-lineage-viewer runs in modern browsers with Custom Elements, Shadow DOM, SVG, `ResizeObserver`, and ES modules; it is not a Node.js runtime library. For now, run `npm pack` in this repository and install the resulting tarball in a consuming project. Use the npm command above only after publication.
+lineage-viewer runs in modern browsers with Custom Elements, Shadow DOM, SVG, `ResizeObserver`, and ES modules; it is not a Node.js runtime library. Use the npm command above for normal installation. Run `npm pack` and install the resulting tarball only when validating unpublished local changes.
 
 ## Basic usage
 

@@ -49,7 +49,7 @@ lineage-viewer 专注于：
 
 ## 快速开始
 
-npm 发布后可直接安装：
+已发布到 npm，可直接安装：
 
 ```sh
 npm install lineage-viewer
@@ -65,7 +65,7 @@ import "lineage-viewer/define";
 
 ## 项目状态
 
-项目目前处于 Alpha / 积极开发中。当前待发布版本为 `0.1.0-alpha.2`，API 在后续版本中仍可能调整。npm Alpha 发布待完成 trusted publisher 配置后触发。
+项目目前处于 Alpha / 积极开发中。npm 当前版本为 `0.1.0-alpha.2`，API 在后续版本中仍可能调整。
 
 ## 在线演示
 
@@ -91,7 +91,7 @@ import "lineage-viewer/define";
 
 ## 完整集成示例
 
-Alpha 发布完成前，可运行 `npm pack` 并安装生成的 tarball。发布后使用：
+从 npm 安装：
 
 ```sh
 npm install lineage-viewer
@@ -126,7 +126,7 @@ lineage-viewer {
 
 ## 安装方式
 
-包面向具备 Custom Elements、Shadow DOM、SVG、`ResizeObserver` 与 ES modules 的现代浏览器，不是 Node.js 运行时库。当前请在仓库中运行 `npm pack`，然后在消费项目中安装产生的 tarball。发布后再使用上面的 npm 命令。
+包面向具备 Custom Elements、Shadow DOM、SVG、`ResizeObserver` 与 ES modules 的现代浏览器，不是 Node.js 运行时库。使用上面的 npm 命令安装；仅在验证本地未发布改动时才需要运行 `npm pack` 并安装生成的 tarball。
 
 ## 基础用法
 

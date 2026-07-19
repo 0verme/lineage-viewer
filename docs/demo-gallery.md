@@ -28,6 +28,8 @@ The repository also contains three source-level examples that run through the Vi
 - `examples/column-basic/` for direct field mappings and recursive selection
 - `examples/column-transform/` for transform metadata and expressions
 - `examples/mixed-lineage/` for view switching, name search, and data-type filtering
+- `examples/sqlglot-adapter/` for rendering column lineage generated from SQL by the independent
+  Python Adapter
 
 These examples are intentionally separate from the hosted Gallery registry and use synthetic data only.
 

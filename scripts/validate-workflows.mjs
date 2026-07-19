@@ -32,6 +32,9 @@ function requireText(source, text, name) {
 requireText(ci, "contents: read", "CI");
 requireText(ci, "workflow_dispatch", "CI");
 requireText(ci, "npm run test:package", "CI");
+requireText(ci, "npm run test:adapter-sqlglot", "CI");
+requireText(ci, "npm run lint:adapter-sqlglot", "CI");
+requireText(ci, 'python -m pip install -e "packages/adapter-sqlglot[dev]"', "CI");
 requireText(cloudflare, "npm run build:site", "Cloudflare workflow");
 requireText(cloudflare, "CLOUDFLARE_API_TOKEN", "Cloudflare workflow");
 requireText(cloudflare, "CLOUDFLARE_ACCOUNT_ID", "Cloudflare workflow");
@@ -54,6 +57,8 @@ for (const script of [
   "build:site",
   "test:package",
   "test:release",
+  "test:adapter-sqlglot",
+  "lint:adapter-sqlglot",
   "test:workflows",
 ]) {
   if (!packageJson.scripts[script]) throw new Error(`Missing package script ${script}.`);

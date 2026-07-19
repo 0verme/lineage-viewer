@@ -25,8 +25,14 @@ jobs:
         with:
           node-version: 22.13.0
           cache: npm
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Install dependencies
         run: npm ci
+      - name: Install SQLGlot adapter
+        run: python -m pip install -e "packages/adapter-sqlglot[dev]"
       - name: Check formatting
         run: npm run format:check
       - name: Lint
@@ -35,6 +41,10 @@ jobs:
         run: npm run typecheck
       - name: Run unit tests
         run: npm test
+      - name: Test SQLGlot adapter
+        run: npm run test:adapter-sqlglot
+      - name: Lint SQLGlot adapter
+        run: npm run lint:adapter-sqlglot
       - name: Validate release helpers and workflows
         run: npm run test:release && npm run test:workflows
       - name: Build package

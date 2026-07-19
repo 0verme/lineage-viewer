@@ -66,6 +66,8 @@
     "pack:check": "node scripts/pack-check.mjs",
     "test:package": "node scripts/test-package.mjs",
     "test:release": "vitest run tests/unit/release.test.ts",
+    "test:adapter-sqlglot": "python -m unittest discover -s packages/adapter-sqlglot/tests -v",
+    "lint:adapter-sqlglot": "python -m ruff check packages/adapter-sqlglot && python -m ruff format --check packages/adapter-sqlglot",
     "test:workflows": "node scripts/validate-workflows.mjs"
   },
   "devDependencies": {

@@ -47,6 +47,9 @@ lineage-viewer is:
 
 It does not parse SQL, discover lineage, or store metadata. Those concerns can be added through independent adapters.
 
+The optional [SQLGlot Adapter](docs/sqlglot-adapter.md) converts `SELECT`, `JOIN`, aliases, and
+aggregates into Viewer JSON from Python without adding SQL parsing to the Web Component.
+
 ## Quick start
 
 After the npm release:
@@ -198,6 +201,7 @@ See the [column lineage guide](docs/column-lineage.md) and runnable examples:
 - [`examples/column-basic/`](examples/column-basic/)
 - [`examples/column-transform/`](examples/column-transform/)
 - [`examples/mixed-lineage/`](examples/mixed-lineage/)
+- [`examples/sqlglot-adapter/`](examples/sqlglot-adapter/) — SQL to generated column lineage
 
 ## Web Component properties
 

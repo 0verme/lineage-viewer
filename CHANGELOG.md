@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Independent SQLGlot Adapter package and CLI for SELECT, JOIN, alias, scalar transform, and
+  aggregate column lineage.
+- Runnable SQL-to-lineage browser example backed by generated Adapter JSON.
+
 ## [0.1.0-alpha.2] - 2026-07-19
 
 ### Added

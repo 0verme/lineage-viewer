@@ -49,3 +49,17 @@ test("mixed-lineage switches views and searches fields", async ({ page }) => {
   await expect(viewer.locator(".field-row[data-search-match]")).toHaveCount(2);
   await expect(page.locator(".status")).toContainText("2 matches");
 });
+
+test("sqlglot adapter demo renders generated aggregate field lineage", async ({ page }) => {
+  await page.goto("/examples/sqlglot-adapter/");
+  const viewer = page.locator("lineage-viewer");
+  await expect(page).toHaveTitle("SQLGlot adapter: SQL to column lineage");
+  await expect(page.locator("[data-sql]")).toContainText("SUM(amount) AS total_amount");
+  await expect(viewer.locator(".field-row")).toHaveCount(4);
+  await expect(viewer.locator(".column-edge")).toHaveCount(2);
+  expect((await viewer.locator(".edge-label").allTextContents()).sort()).toEqual([
+    "aggregate",
+    "passthrough",
+  ]);
+  await expect(page.locator(".status")).toContainText("2 field mappings generated from SQL");
+});

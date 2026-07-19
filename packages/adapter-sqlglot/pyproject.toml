@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lineage-viewer-adapter-sqlglot"
+version = "0.1.0"
+description = "Convert SQLGlot-parsed SQL into lineage-viewer graph JSON."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "lineage-viewer contributors" }]
+dependencies = ["sqlglot>=30.0.0,<31"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.15.0,<0.16"]
+
+[project.scripts]
+lineage-viewer-sqlglot = "lineage_viewer_adapter_sqlglot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -3,8 +3,13 @@
   "name": "lineage-viewer-demo",
   "main": "./src/worker.ts",
   "compatibility_date": "2026-07-11",
+  "cache": {
+    "enabled": true,
+    "cross_version_cache": false
+  },
   "assets": {
     "directory": "./site-dist",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
   }
 }

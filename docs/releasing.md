@@ -38,6 +38,12 @@ npm publish --dry-run
 
 The release workflow performs a fresh `npm ci`, validates that tag and package versions match, repeats build/test/package checks, runs `npm publish --dry-run`, and publishes with `--provenance --access public`. The explicit public access flag is required for the first trusted publication of this unscoped package; if the package becomes scoped, set the intended access explicitly before release.
 
+## Demo site caching
+
+The Cloudflare deployment runs the Worker before serving `site-dist/` and enables Workers Caching with version-isolated entries. Successful responses remain in Cloudflare's edge cache for one year. Vite's fingerprinted `/assets/*` files also use a one-year immutable browser cache, while HTML and other non-fingerprinted resources use `max-age=0, must-revalidate` in browsers.
+
+Do not enable `cross_version_cache` without also adding an explicit purge step to the deployment workflow. With the current version-isolated policy, each deployment starts with a fresh cache namespace, so changed HTML and assets take effect immediately without a manual purge. After deployment, send two requests to the same page and fingerprinted asset and inspect `CF-Cache-Status`; the warmed request should report `HIT`.
+
 ## Verify and recover
 
 After a successful tag workflow, verify the npm package, its provenance, the GitHub Release notes, and the Project Pages gallery at `https://0verme.github.io/lineage-viewer/` (including `demo.html?id=<id>` and `playground.html`). Pages assets use relative paths, so the Project Pages repository subpath is preserved.

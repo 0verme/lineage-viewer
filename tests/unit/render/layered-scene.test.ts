@@ -17,6 +17,14 @@ const chain = {
 };
 const positions = (value: ReturnType<typeof scene>) =>
   new Map(value.nodes.map((node) => [node.id, node]));
+const endpoints = (path: string) => {
+  const match = /^M ([^ ]+) ([^ ]+) C .*?, ([^ ]+) ([^ ]+)$/.exec(path);
+  if (match === null) throw new Error(`Unexpected edge path: ${path}`);
+  return {
+    start: { x: Number(match[1]), y: Number(match[2]) },
+    end: { x: Number(match[3]), y: Number(match[4]) },
+  };
+};
 
 describe("createLayeredRenderScene", () => {
   it("uses longest-path ranks for a chain and preserves finite scene data", () => {
@@ -184,5 +192,155 @@ describe("createLayeredRenderScene", () => {
     expect(target.y).toBeGreaterThanOrEqual(
       source.y + source.height + defaultLineageViewerOptions.layerGap,
     );
+  });
+
+  it("routes column edges from their field row centers", () => {
+    const result = scene({
+      nodes: [
+        {
+          id: "source",
+          label: "Source",
+          fields: [{ id: "first" }, { id: "second" }],
+        },
+        {
+          id: "target",
+          label: "Target",
+          fields: [{ id: "first" }, { id: "second" }],
+        },
+      ],
+      edges: [
+        {
+          source: "source",
+          target: "target",
+          sourceField: "second",
+          targetField: "first",
+        },
+      ],
+    });
+    const nodes = positions(result);
+    const source = nodes.get("source")!;
+    const target = nodes.get("target")!;
+    const edge = endpoints(result.edges[0]!.path);
+
+    expect(edge.start).toEqual({
+      x: source.x + source.width,
+      y: source.y + 48 + 28 + 14,
+    });
+    expect(edge.end).toEqual({
+      x: target.x,
+      y: target.y + 48 + 14,
+    });
+  });
+
+  it("supports one field with multiple downstream and upstream connections", () => {
+    const result = scene({
+      nodes: [
+        {
+          id: "source",
+          label: "Source",
+          fields: [{ id: "shared" }, { id: "other" }],
+        },
+        {
+          id: "target",
+          label: "Target",
+          fields: [{ id: "first" }, { id: "shared" }],
+        },
+      ],
+      edges: [
+        {
+          source: "source",
+          target: "target",
+          sourceField: "shared",
+          targetField: "first",
+        },
+        {
+          source: "source",
+          target: "target",
+          sourceField: "shared",
+          targetField: "shared",
+        },
+        {
+          source: "source",
+          target: "target",
+          sourceField: "other",
+          targetField: "shared",
+        },
+      ],
+    });
+    const sharedSourceEdges = result.edges.filter((edge) => edge.edge.sourceField === "shared");
+    const sharedTargetEdges = result.edges.filter((edge) => edge.edge.targetField === "shared");
+
+    expect(result.edges).toHaveLength(3);
+    expect(sharedSourceEdges).toHaveLength(2);
+    expect(sharedTargetEdges).toHaveLength(2);
+    expect(
+      new Set(sharedSourceEdges.map((edge) => JSON.stringify(endpoints(edge.path).start))),
+    ).toHaveLength(1);
+    expect(
+      new Set(sharedTargetEdges.map((edge) => JSON.stringify(endpoints(edge.path).end))),
+    ).toHaveLength(1);
+  });
+
+  it.each(["LR", "RL", "TB", "BT"] as const)(
+    "keeps column edge paths finite in %s layout",
+    (direction) => {
+      const result = scene(
+        {
+          nodes: [
+            {
+              id: "source",
+              label: "Source",
+              fields: [{ id: "id" }],
+            },
+            {
+              id: "target",
+              label: "Target",
+              fields: [{ id: "id" }],
+            },
+          ],
+          edges: [
+            {
+              source: "source",
+              target: "target",
+              sourceField: "id",
+              targetField: "id",
+            },
+          ],
+        },
+        direction,
+      );
+      const source = positions(result).get("source")!;
+      const edge = endpoints(result.edges[0]!.path);
+      const forward = direction === "LR" || direction === "TB";
+
+      expect(result.edges[0]!.path).not.toMatch(/NaN|Infinity/);
+      expect(edge.start.x).toBe(source.x + (forward ? source.width : 0));
+    },
+  );
+
+  it("routes same-node column edges outside the node", () => {
+    const result = scene({
+      nodes: [
+        {
+          id: "node",
+          label: "Node",
+          fields: [{ id: "first" }, { id: "second" }],
+        },
+      ],
+      edges: [
+        {
+          source: "node",
+          target: "node",
+          sourceField: "first",
+          targetField: "second",
+        },
+      ],
+    });
+    const node = positions(result).get("node")!;
+    const edge = result.edges[0]!;
+
+    expect(edge.path).toMatch(/^M .* C /);
+    expect(edge.labelX).toBeGreaterThan(node.x + node.width);
+    expect(edge.path).not.toMatch(/NaN|Infinity/);
   });
 });

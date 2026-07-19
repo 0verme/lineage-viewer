@@ -52,12 +52,18 @@ export class SvgRenderer {
     nodes.setAttribute("class", "nodes");
     for (const item of scene.edges) {
       const path = createSvgElement("path");
-      path.setAttribute("class", "edge");
+      const isColumnEdge =
+        item.edge.sourceField !== undefined && item.edge.targetField !== undefined;
+      path.setAttribute("class", isColumnEdge ? "edge column-edge" : "edge table-edge");
       path.setAttribute("d", item.path);
       path.setAttribute("marker-end", `url(#${this.markerId})`);
       path.setAttribute("data-edge-key", item.key);
       path.setAttribute("data-edge-source", item.edge.source);
       path.setAttribute("data-edge-target", item.edge.target);
+      if (item.edge.sourceField !== undefined)
+        path.setAttribute("data-edge-source-field", item.edge.sourceField);
+      if (item.edge.targetField !== undefined)
+        path.setAttribute("data-edge-target-field", item.edge.targetField);
       edges.append(path);
       if (options.showEdgeLabels && item.edge.label) {
         const label = createSvgElement("text");

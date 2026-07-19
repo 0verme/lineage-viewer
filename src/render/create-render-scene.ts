@@ -1,7 +1,7 @@
 import { layoutLineageGraph } from "../layout/index.js";
 import type { NormalizedLineageGraph } from "../graph/types.js";
 import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
-import { measureNodeHeight } from "./field-renderer.js";
+import { fieldRowCenter, measureNodeHeight } from "./node-metrics.js";
 import type { RenderEdge, RenderNode, RenderScene } from "./types.js";
 
 export function createLayeredRenderScene(
@@ -22,7 +22,13 @@ export function createLayeredRenderScene(
     const target = byId.get(edge.target);
     return source === undefined || target === undefined
       ? []
-      : [{ key: edge.key, edge, ...routeEdge(source, target, options.direction, edge.key) }];
+      : [
+          {
+            key: edge.key,
+            edge,
+            ...routeEdge(source, target, edge, options.direction),
+          },
+        ];
   });
   return { width: layout.width, height: layout.height, nodes, edges };
 }
@@ -41,14 +47,25 @@ interface Point {
 function routeEdge(
   source: RenderNode,
   target: RenderNode,
+  edge: NormalizedLineageGraph["edges"][number],
   direction: ResolvedLineageViewerOptions["direction"],
-  key: string,
 ): RoutedEdge {
+  if (edge.sourceField !== undefined && edge.targetField !== undefined) {
+    const columnRoute = routeColumnEdge(
+      source,
+      target,
+      edge.sourceField,
+      edge.targetField,
+      direction,
+      edge.key,
+    );
+    if (columnRoute !== null) return columnRoute;
+  }
   if (source.id === target.id) return selfLoop(source, direction);
   const vertical = direction === "TB" || direction === "BT";
   const forward = direction === "LR" || direction === "TB";
   const sameRank = source.rank === target.rank;
-  if (sameRank) return sameLayerCurve(source, target, vertical, key);
+  if (sameRank) return sameLayerCurve(source, target, vertical, edge.key);
   if (vertical) {
     const start = { x: source.x + source.width / 2, y: source.y + (forward ? source.height : 0) };
     const end = { x: target.x + target.width / 2, y: target.y + (forward ? 0 : target.height) };
@@ -59,6 +76,74 @@ function routeEdge(
   const end = { x: target.x + (forward ? 0 : target.width), y: target.y + target.height / 2 };
   const middle = (start.x + end.x) / 2;
   return cubicRoute(start, { x: middle, y: start.y }, { x: middle, y: end.y }, end);
+}
+
+function routeColumnEdge(
+  source: RenderNode,
+  target: RenderNode,
+  sourceField: string,
+  targetField: string,
+  direction: ResolvedLineageViewerOptions["direction"],
+  key: string,
+): RoutedEdge | null {
+  const sourceCenter = fieldRowCenter(source.node, sourceField);
+  const targetCenter = fieldRowCenter(target.node, targetField);
+  if (sourceCenter === null || targetCenter === null) return null;
+  const forward = direction === "LR" || direction === "TB";
+  const start = {
+    x: source.x + (forward ? source.width : 0),
+    y: source.y + sourceCenter,
+  };
+  const end = {
+    x: target.x + (forward ? 0 : target.width),
+    y: target.y + targetCenter,
+  };
+  if (source.id === target.id) return columnSelfLoop(source, start, end, forward, key);
+  if (source.rank === target.rank)
+    return sameLayerColumnCurve(source, target, start, end, direction, key);
+  if (direction === "TB" || direction === "BT") {
+    const middle = (start.y + end.y) / 2;
+    return cubicRoute(start, { x: start.x, y: middle }, { x: end.x, y: middle }, end);
+  }
+  const middle = (start.x + end.x) / 2;
+  return cubicRoute(start, { x: middle, y: start.y }, { x: middle, y: end.y }, end);
+}
+
+function sameLayerColumnCurve(
+  source: RenderNode,
+  target: RenderNode,
+  start: Point,
+  end: Point,
+  direction: ResolvedLineageViewerOptions["direction"],
+  key: string,
+): RoutedEdge {
+  const forward = direction === "LR" || direction === "TB";
+  const offset = 28 + (stableOffset(key) % 3) * 12;
+  if (direction === "TB" || direction === "BT") {
+    const y = forward
+      ? Math.max(source.y + source.height, target.y + target.height) + offset
+      : Math.min(source.y, target.y) - offset;
+    return cubicRoute(start, { x: start.x, y }, { x: end.x, y }, end);
+  }
+  const x = forward
+    ? Math.max(source.x + source.width, target.x + target.width) + offset
+    : Math.min(source.x, target.x) - offset;
+  return cubicRoute(start, { x, y: start.y }, { x, y: end.y }, end);
+}
+
+function columnSelfLoop(
+  node: RenderNode,
+  start: Point,
+  end: Point,
+  forward: boolean,
+  key: string,
+): RoutedEdge {
+  const offset = 36 + (stableOffset(key) % 3) * 10;
+  const outerX = forward ? node.x + node.width + offset : node.x - offset;
+  if (start.y !== end.y) {
+    return cubicRoute(start, { x: outerX, y: start.y }, { x: outerX, y: end.y }, end);
+  }
+  return cubicRoute(start, { x: outerX, y: start.y - 28 }, { x: outerX, y: end.y + 28 }, end);
 }
 
 function sameLayerCurve(

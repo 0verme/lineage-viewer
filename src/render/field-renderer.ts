@@ -1,24 +1,16 @@
-import type { NormalizedLineageNode } from "../graph/types.js";
 import type { RenderNode } from "./types.js";
+import { fieldRowCenter, fieldRowHeight, nodeHeaderHeight } from "./node-metrics.js";
 import { createSvgElement } from "./svg-dom.js";
 
-const titleOnlyHeaderHeight = 48;
-const subtitleHeaderHeight = 68;
-const fieldRowHeight = 28;
 const dataTypeWidth = 64;
 const horizontalPadding = 16;
 const columnGap = 8;
-
-export function measureNodeHeight(node: NormalizedLineageNode, minimumHeight: number): number {
-  if (!hasVisibleFields(node)) return minimumHeight;
-  return Math.max(minimumHeight, headerHeight(node) + node.fields.length * fieldRowHeight);
-}
 
 export class FieldRenderer {
   render(group: SVGGElement, item: RenderNode, clipIdPrefix: string): void {
     const fields = item.node.fields;
     if (fields === undefined || fields.length === 0) return;
-    const header = headerHeight(item.node);
+    const header = nodeHeaderHeight(item.node);
     const separator = createSvgElement("line");
     separator.setAttribute("class", "field-separator");
     separator.setAttribute("x1", "0");
@@ -33,6 +25,8 @@ export class FieldRenderer {
       const row = createSvgElement("g");
       row.setAttribute("class", "field-row");
       row.setAttribute("data-field-id", field.id);
+      const center = fieldRowCenter(item.node, field.id);
+      if (center === null) continue;
       const baseline = header + index * fieldRowHeight + 19;
       const label = createSvgElement("text");
       label.setAttribute("class", "field-name");
@@ -75,20 +69,14 @@ export class FieldRenderer {
       const tooltip = createSvgElement("title");
       tooltip.textContent = fieldTooltip(field);
       row.append(tooltip);
+      row.append(
+        createAnchor(field.id, "left", 0, center),
+        createAnchor(field.id, "right", item.width, center),
+      );
       fieldGroup.append(row);
     }
     group.append(fieldGroup);
   }
-}
-
-function hasVisibleFields(
-  node: NormalizedLineageNode,
-): node is NormalizedLineageNode & { fields: NonNullable<NormalizedLineageNode["fields"]> } {
-  return node.fields !== undefined && node.fields.length > 0;
-}
-
-function headerHeight(node: NormalizedLineageNode): number {
-  return node.subtitle === undefined ? titleOnlyHeaderHeight : subtitleHeaderHeight;
 }
 
 function appendClipPath(
@@ -111,7 +99,23 @@ function appendClipPath(
   return id;
 }
 
-function fieldTooltip(field: NonNullable<NormalizedLineageNode["fields"]>[number]): string {
+function createAnchor(
+  fieldId: string,
+  side: "left" | "right",
+  x: number,
+  y: number,
+): SVGCircleElement {
+  const anchor = createSvgElement("circle");
+  anchor.setAttribute("class", `field-anchor field-anchor-${side}`);
+  anchor.setAttribute("data-field-id", fieldId);
+  anchor.setAttribute("data-port-side", side);
+  anchor.setAttribute("cx", String(x));
+  anchor.setAttribute("cy", String(y));
+  anchor.setAttribute("r", "3.5");
+  return anchor;
+}
+
+function fieldTooltip(field: NonNullable<RenderNode["node"]["fields"]>[number]): string {
   const label = field.label ?? field.id;
   const heading = field.dataType === undefined ? label : `${label} (${field.dataType})`;
   return field.description === undefined ? heading : `${heading}\n${field.description}`;

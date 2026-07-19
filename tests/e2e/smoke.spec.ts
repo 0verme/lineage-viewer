@@ -69,10 +69,37 @@ test("renders field names and data types inside dynamically sized table nodes", 
             { id: "created_at", dataType: "timestamp" },
           ],
         },
+        {
+          id: "warehouse",
+          label: "Warehouse orders",
+          fields: [
+            { id: "order_id", dataType: "bigint" },
+            { id: "created_at", dataType: "timestamp" },
+          ],
+        },
         { id: "customers", label: "Customers", fields: [] },
         { id: "legacy", label: "Legacy table" },
       ],
-      edges: [],
+      edges: [
+        {
+          source: "orders",
+          target: "warehouse",
+          sourceField: "order_id",
+          targetField: "order_id",
+        },
+        {
+          source: "orders",
+          target: "warehouse",
+          sourceField: "order_id",
+          targetField: "created_at",
+        },
+        {
+          source: "orders",
+          target: "warehouse",
+          sourceField: "created_at",
+          targetField: "created_at",
+        },
+      ],
     });
   });
   await expect(viewer).toBeVisible();
@@ -81,7 +108,21 @@ test("renders field names and data types inside dynamically sized table nodes", 
   await expect(orders.locator(".field-row")).toHaveCount(2);
   await expect(orders.locator(".field-name")).toHaveText(["Order ID", "created_at"]);
   await expect(orders.locator(".field-data-type")).toHaveText(["bigint", "timestamp"]);
+  await expect(orders.locator(".field-anchor")).toHaveCount(4);
+  await expect(orders.locator('.field-anchor[data-port-side="left"]')).toHaveCount(2);
+  await expect(orders.locator('.field-anchor[data-port-side="right"]')).toHaveCount(2);
   await expect(orders.locator(".node-surface")).toHaveAttribute("height", "104");
+  await expect(viewer.locator(".column-edge")).toHaveCount(3);
+  await expect(viewer.locator(".table-edge")).toHaveCount(0);
+  await expect(viewer.locator('.column-edge[data-edge-source-field="order_id"]')).toHaveCount(2);
+  await expect(viewer.locator('.column-edge[data-edge-target-field="created_at"]')).toHaveCount(2);
+  expect(
+    await viewer
+      .locator(".column-edge")
+      .evaluateAll((edges) =>
+        edges.every((edge) => !/NaN|Infinity/.test(edge.getAttribute("d") ?? "")),
+      ),
+  ).toBe(true);
   await expect(viewer.locator('.node[data-node-id="customers"] .node-surface')).toHaveAttribute(
     "height",
     "72",

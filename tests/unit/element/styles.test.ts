@@ -19,6 +19,8 @@ describe("lineage viewer sizing", () => {
     expect(lineageViewerStyles).toContain(".node > .node-surface");
     expect(lineageViewerStyles).toContain(".field-name,.field-data-type");
     expect(lineageViewerStyles).toContain(".field-separator");
+    expect(lineageViewerStyles).toContain(".field-anchor");
+    expect(lineageViewerStyles).toContain(".column-edge");
     expect(lineageViewerStyles).not.toContain(".node rect {");
   });
 });

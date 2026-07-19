@@ -108,7 +108,10 @@ function clamp(value: number): number {
 }
 function clampFitScale(value: number, options: ViewportFitOptions): number {
   const minScale = Math.max(MIN_SCALE, validScale(options.minScale) ? options.minScale : MIN_SCALE);
-  const maxScale = Math.max(minScale, Math.min(MAX_SCALE, validScale(options.maxScale) ? options.maxScale : MAX_SCALE));
+  const maxScale = Math.max(
+    minScale,
+    Math.min(MAX_SCALE, validScale(options.maxScale) ? options.maxScale : MAX_SCALE),
+  );
   return Math.min(maxScale, Math.max(minScale, value));
 }
 function validPadding(value: number | undefined): value is number {

@@ -7,7 +7,12 @@ import {
   sanitize,
   zoomAt,
 } from "./viewport-math.js";
-import type { SceneBounds, ViewportFitOptions, ViewportSize, ViewportTransform } from "./viewport-types.js";
+import type {
+  SceneBounds,
+  ViewportFitOptions,
+  ViewportSize,
+  ViewportTransform,
+} from "./viewport-types.js";
 
 export class ViewportController {
   private transform: ViewportTransform = identityTransform;

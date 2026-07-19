@@ -4,10 +4,16 @@ import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
 import { fieldRowCenter, measureNodeHeight } from "./node-metrics.js";
 import type { RenderEdge, RenderNode, RenderScene } from "./types.js";
 
+const sceneCache = new WeakMap<NormalizedLineageGraph, Map<string, RenderScene>>();
+const maximumCachedLayouts = 8;
+
 export function createLayeredRenderScene(
   graph: NormalizedLineageGraph,
   options: ResolvedLineageViewerOptions,
 ): RenderScene {
+  const cacheKey = layoutCacheKey(options);
+  const cached = sceneCache.get(graph)?.get(cacheKey);
+  if (cached !== undefined) return cached;
   const nodeHeightById = new Map(
     graph.nodes.map((node) => [node.id, measureNodeHeight(node, options.nodeHeight)]),
   );
@@ -30,7 +36,22 @@ export function createLayeredRenderScene(
           },
         ];
   });
-  return { width: layout.width, height: layout.height, nodes, edges };
+  const scene = { width: layout.width, height: layout.height, nodes, edges };
+  const graphCache = sceneCache.get(graph) ?? new Map<string, RenderScene>();
+  if (graphCache.size >= maximumCachedLayouts) graphCache.delete(graphCache.keys().next().value!);
+  graphCache.set(cacheKey, scene);
+  sceneCache.set(graph, graphCache);
+  return scene;
+}
+
+function layoutCacheKey(options: ResolvedLineageViewerOptions): string {
+  return JSON.stringify([
+    options.direction,
+    options.nodeWidth,
+    options.nodeHeight,
+    options.layerGap,
+    options.nodeGap,
+  ]);
 }
 
 interface RoutedEdge {

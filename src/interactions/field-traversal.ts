@@ -12,6 +12,15 @@ export interface FieldTraversalResult {
   readonly edgeKeys: ReadonlySet<string>;
 }
 
+interface FieldTraversalIndex {
+  readonly fieldKeys: ReadonlySet<string>;
+  readonly incoming: ReadonlyMap<string, readonly NormalizedLineageEdge[]>;
+  readonly outgoing: ReadonlyMap<string, readonly NormalizedLineageEdge[]>;
+  readonly results: Map<string, FieldTraversalResult>;
+}
+
+const indexes = new WeakMap<NormalizedLineageGraph, FieldTraversalIndex>();
+
 export function fieldReferenceKey(reference: FieldReference): string {
   return JSON.stringify([reference.nodeId, reference.fieldId]);
 }
@@ -22,15 +31,11 @@ export function traverseFieldLineage(
   mode: FieldTraversalMode,
 ): FieldTraversalResult {
   const startKey = fieldReferenceKey(start);
-  if (!hasField(graph, start)) return { fieldKeys: new Set(), edgeKeys: new Set() };
-
-  const incoming = new Map<string, NormalizedLineageEdge[]>();
-  const outgoing = new Map<string, NormalizedLineageEdge[]>();
-  for (const edge of graph.edges) {
-    if (edge.sourceField === undefined || edge.targetField === undefined) continue;
-    append(outgoing, fieldReferenceKey({ nodeId: edge.source, fieldId: edge.sourceField }), edge);
-    append(incoming, fieldReferenceKey({ nodeId: edge.target, fieldId: edge.targetField }), edge);
-  }
+  const traversalIndex = getFieldTraversalIndex(graph);
+  if (!traversalIndex.fieldKeys.has(startKey)) return emptyResult();
+  const cacheKey = `${mode}\u0000${startKey}`;
+  const cached = traversalIndex.results.get(cacheKey);
+  if (cached !== undefined) return cached;
 
   const fieldKeys = new Set([startKey]);
   const edgeKeys = new Set<string>();
@@ -38,8 +43,8 @@ export function traverseFieldLineage(
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index]!;
     const candidates = [
-      ...(mode === "downstream" ? [] : (incoming.get(current) ?? [])),
-      ...(mode === "upstream" ? [] : (outgoing.get(current) ?? [])),
+      ...(mode === "downstream" ? [] : (traversalIndex.incoming.get(current) ?? [])),
+      ...(mode === "upstream" ? [] : (traversalIndex.outgoing.get(current) ?? [])),
     ];
     for (const edge of candidates) {
       edgeKeys.add(edge.key);
@@ -57,7 +62,28 @@ export function traverseFieldLineage(
       queue.push(next);
     }
   }
-  return { fieldKeys, edgeKeys };
+  const result = { fieldKeys, edgeKeys };
+  traversalIndex.results.set(cacheKey, result);
+  return result;
+}
+
+function getFieldTraversalIndex(graph: NormalizedLineageGraph): FieldTraversalIndex {
+  const cached = indexes.get(graph);
+  if (cached !== undefined) return cached;
+  const fieldKeys = new Set<string>();
+  for (const node of graph.nodes)
+    for (const field of node.fields ?? [])
+      fieldKeys.add(fieldReferenceKey({ nodeId: node.id, fieldId: field.id }));
+  const incoming = new Map<string, NormalizedLineageEdge[]>();
+  const outgoing = new Map<string, NormalizedLineageEdge[]>();
+  for (const edge of graph.edges) {
+    if (edge.sourceField === undefined || edge.targetField === undefined) continue;
+    append(outgoing, fieldReferenceKey({ nodeId: edge.source, fieldId: edge.sourceField }), edge);
+    append(incoming, fieldReferenceKey({ nodeId: edge.target, fieldId: edge.targetField }), edge);
+  }
+  const created = { fieldKeys, incoming, outgoing, results: new Map() };
+  indexes.set(graph, created);
+  return created;
 }
 
 function append(
@@ -70,10 +96,6 @@ function append(
   else index.set(key, [edge]);
 }
 
-function hasField(graph: NormalizedLineageGraph, reference: FieldReference): boolean {
-  return (
-    graph.nodeById
-      .get(reference.nodeId)
-      ?.fields?.some((field) => field.id === reference.fieldId) === true
-  );
+function emptyResult(): FieldTraversalResult {
+  return { fieldKeys: new Set(), edgeKeys: new Set() };
 }

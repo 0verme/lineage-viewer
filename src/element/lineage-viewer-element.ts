@@ -138,7 +138,7 @@ export class LineageViewerElement extends ElementBase {
     )
       this.viewport?.setScene(bounds(this.scene), this.size(), true);
     else if (previous.showEdgeLabels !== this.resolvedOptions.showEdgeLabels && this.initialized)
-      this.renderCurrent(false);
+      this.renderer?.setEdgeLabels(this.resolvedOptions.showEdgeLabels);
     this.applyInteractionState();
   }
   getDiagnostics(): readonly LineageDiagnostic[] {
@@ -270,7 +270,6 @@ export class LineageViewerElement extends ElementBase {
   }
   private renderCurrent(newScene: boolean): void {
     if (!this.initialized || this.renderer === null) return;
-    this.renderer.clear();
     this.root.querySelector(".state")?.remove();
     this.scene = null;
     this.viewGraph = null;
@@ -286,6 +285,7 @@ export class LineageViewerElement extends ElementBase {
       this.applySearchState();
       return;
     }
+    this.renderer.clear();
     this.viewport?.setScene(null, this.size(), false);
     const container = document.createElement("div");
     container.className = "state";

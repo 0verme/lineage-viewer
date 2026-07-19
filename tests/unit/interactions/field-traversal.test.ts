@@ -58,6 +58,15 @@ describe("field lineage traversal", () => {
       edgeKeys: new Set(),
     });
   });
+
+  it("reuses cached traversal results for the same immutable graph and request", () => {
+    const start = { nodeId: "middle", fieldId: "id" };
+    const first = traverseFieldLineage(graph, start, "both");
+    const second = traverseFieldLineage(graph, start, "both");
+
+    expect(second).toBe(first);
+    expect(traverseFieldLineage(graph, start, "upstream")).not.toBe(first);
+  });
 });
 
 describe("field highlight state", () => {

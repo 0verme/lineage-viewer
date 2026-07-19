@@ -109,6 +109,16 @@ describe("createLayeredRenderScene", () => {
     expect(result.edges[0]?.labelX).toBeGreaterThan(positions(result).get("a")!.x);
   });
 
+  it("reuses cached layout and routed paths for identical graph options", () => {
+    const graph = normalizeLineageGraphData(chain).graph!;
+    const options = { ...defaultLineageViewerOptions };
+    const first = createLayeredRenderScene(graph, options);
+    const second = createLayeredRenderScene(graph, { ...options, showEdgeLabels: true });
+
+    expect(second).toBe(first);
+    expect(createLayeredRenderScene(graph, { ...options, direction: "TB" })).not.toBe(first);
+  });
+
   it("places an edge label at the routed curve midpoint", () => {
     const result = scene({
       nodes: [

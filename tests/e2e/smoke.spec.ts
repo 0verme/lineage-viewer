@@ -385,3 +385,63 @@ test("searches table and field names and filters by data type", async ({ page })
   await expect(viewer.locator("[data-search-match]")).toHaveCount(0);
   await expect(viewer.locator("[data-search-dimmed]")).toHaveCount(0);
 });
+
+test("reuses SVG elements for label toggles and unchanged graph items", async ({ page }) => {
+  await page.goto("/examples/vanilla/");
+  const viewer = page.locator("lineage-viewer");
+  const reuse = await viewer.evaluate((element) => {
+    const api = element as unknown as {
+      setData(data: unknown): void;
+      setOptions(options: unknown): void;
+      shadowRoot: ShadowRoot;
+    };
+    const graph = (sourceLabel: string) => ({
+      nodes: [
+        {
+          id: "source",
+          label: sourceLabel,
+          fields: [{ id: "id", dataType: "bigint" }],
+        },
+        {
+          id: "target",
+          label: "Target",
+          fields: [{ id: "id", dataType: "bigint" }],
+        },
+      ],
+      edges: [
+        {
+          source: "source",
+          target: "target",
+          sourceField: "id",
+          targetField: "id",
+          label: "copies",
+        },
+      ],
+    });
+    api.setData(graph("Source"));
+    const source = api.shadowRoot.querySelector('.node[data-node-id="source"]');
+    const target = api.shadowRoot.querySelector('.node[data-node-id="target"]');
+    const edge = api.shadowRoot.querySelector(".edge");
+    api.setOptions({ showEdgeLabels: true });
+    const labelToggle = {
+      source: source === api.shadowRoot.querySelector('.node[data-node-id="source"]'),
+      target: target === api.shadowRoot.querySelector('.node[data-node-id="target"]'),
+      edge: edge === api.shadowRoot.querySelector(".edge"),
+      labels: api.shadowRoot.querySelectorAll(".edge-label").length,
+    };
+    api.setData(graph("Renamed source"));
+    return {
+      labelToggle,
+      changedSource: source !== api.shadowRoot.querySelector('.node[data-node-id="source"]'),
+      unchangedTarget: target === api.shadowRoot.querySelector('.node[data-node-id="target"]'),
+      unchangedEdge: edge === api.shadowRoot.querySelector(".edge"),
+    };
+  });
+
+  expect(reuse).toEqual({
+    labelToggle: { source: true, target: true, edge: true, labels: 1 },
+    changedSource: true,
+    unchangedTarget: true,
+    unchangedEdge: true,
+  });
+});

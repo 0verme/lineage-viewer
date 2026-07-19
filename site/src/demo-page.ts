@@ -65,10 +65,18 @@ function render(current: LineageDemoDefinition): void {
     select(t("direction"), ["LR", "RL", "TB", "BT"], "LR", (v) =>
       setOptions({ direction: v as NonNullable<LineageViewerOptions["direction"]> }),
     ),
+    select(
+      t("viewMode"),
+      ["mixed", "table", "column"],
+      current.viewerOptions?.viewMode ?? "mixed",
+      (v) => setOptions({ viewMode: v as NonNullable<LineageViewerOptions["viewMode"]> }),
+    ),
     select(t("highlight"), ["connected", "upstream", "downstream", "none"], "connected", (v) =>
       setOptions({ highlightMode: v as NonNullable<LineageViewerOptions["highlightMode"]> }),
     ),
-    checkbox(t("showEdgeLabels"), false, (v) => setOptions({ showEdgeLabels: v })),
+    checkbox(t("showEdgeLabels"), Boolean(current.viewerOptions?.showEdgeLabels), (v) =>
+      setOptions({ showEdgeLabels: v }),
+    ),
     checkbox(t("showSelfLoops"), Boolean(current.viewerOptions?.showSelfLoops), (v) =>
       setOptions({ showSelfLoops: v }),
     ),

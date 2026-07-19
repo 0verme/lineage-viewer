@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
 
+import { normalizeLineageGraphData } from "../../src/graph/index.js";
 import { cloneGraph, demos, findDemo } from "../../site/src/demo-registry.js";
 
 describe("demo registry", () => {
   test("has stable, unique, URL-safe demo ids", () => {
-    expect(demos.length).toBeGreaterThanOrEqual(7);
+    expect(demos.length).toBeGreaterThanOrEqual(10);
     expect(new Set(demos.map((demo) => demo.id)).size).toBe(demos.length);
     expect(demos.every((demo) => /^[a-z0-9-]+$/.test(demo.id))).toBe(true);
   });
@@ -20,11 +21,21 @@ describe("demo registry", () => {
             demo.graph.nodes.some((node) => node.id === edge.target),
         ),
       ).toBe(true);
+      expect(normalizeLineageGraphData(demo.graph, { showSelfLoops: true }).graph).not.toBeNull();
     }
     expect(findDemo("unknown")).toBeNull();
     expect(findDemo("basic")?.id).toBe("simple-pipeline");
     expect(findDemo("cycles")?.viewerOptions?.showSelfLoops).toBe(true);
     expect(findDemo("warehouse-layers")?.graph.nodes.length).toBeGreaterThanOrEqual(20);
+    expect(findDemo("column-basic")?.viewerOptions?.viewMode).toBe("column");
+    expect(findDemo("column-transform")?.graph.edges.every((edge) => edge.transformType)).toBe(
+      true,
+    );
+    expect(
+      findDemo("mixed-lineage")?.graph.edges.some(
+        (edge) => edge.sourceField === undefined && edge.targetField === undefined,
+      ),
+    ).toBe(true);
   });
   test("creates deterministic large graphs and defensive copies", () => {
     const first = findDemo("large-graph")?.graph;

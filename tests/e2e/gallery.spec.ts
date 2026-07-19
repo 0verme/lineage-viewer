@@ -9,12 +9,37 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
   await expect(page.locator("lineage-viewer")).toBeVisible();
   await expect(page.locator("lineage-viewer .node")).toHaveCount(4);
   const cards = page.locator("#demos article");
-  await expect(cards).toHaveCount(7);
+  await expect(cards).toHaveCount(10);
   await expect(cards.first()).toContainText("nodes");
-  await cards.nth(3).getByRole("link", { name: "Open demo" }).click();
+  await expect(page.getByRole("heading", { name: "Basic column lineage" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Column transformations" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mixed table and column lineage" })).toBeVisible();
+  await cards.nth(6).getByRole("link", { name: "Open demo" }).click();
   await expect(page).toHaveURL(/demo\.html\?id=warehouse-layers/);
   await expect(page.locator("lineage-viewer .node")).toHaveCount(20);
   expect(errors).toEqual([]);
+});
+
+test("gallery column demos render fields, transforms, and view modes", async ({ page }) => {
+  await page.goto("/site/demo.html?id=column-transform&lang=en");
+  const viewer = page.locator("lineage-viewer");
+  await expect(viewer.locator(".field-row")).toHaveCount(6);
+  await expect(viewer.locator(".column-edge")).toHaveCount(3);
+  expect((await viewer.locator(".edge-label").allTextContents()).sort()).toEqual([
+    "convert",
+    "rename",
+    "sum",
+  ]);
+  await expect(page.getByLabel("Show edge labels")).toBeChecked();
+
+  await page.goto("/site/demo.html?id=mixed-lineage&lang=en");
+  await expect(viewer.locator(".field-row")).toHaveCount(7);
+  await expect(viewer.locator(".column-edge")).toHaveCount(4);
+  await expect(viewer.locator(".table-edge")).toHaveCount(2);
+  await page.getByLabel("View mode").selectOption("table");
+  await expect(viewer.locator(".field-row")).toHaveCount(0);
+  await expect(viewer.locator(".column-edge")).toHaveCount(0);
+  await expect(viewer.locator(".table-edge")).toHaveCount(3);
 });
 
 test("demo controls, JSON and diagnostics are interactive", async ({ page }) => {

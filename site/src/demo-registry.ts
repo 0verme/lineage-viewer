@@ -114,6 +114,186 @@ function largeGraph(): LineageGraphData {
   return { schemaVersion: "1.0", nodes, edges };
 }
 
+function columnBasicGraph(): LineageGraphData {
+  return {
+    schemaVersion: "1.0",
+    nodes: [
+      {
+        id: "raw_orders",
+        label: "RAW_ORDERS",
+        subtitle: "Source",
+        fields: [
+          { id: "order_id", dataType: "bigint" },
+          { id: "customer_id", dataType: "bigint" },
+          { id: "created_at", dataType: "timestamp" },
+        ],
+      },
+      {
+        id: "stg_orders",
+        label: "STG_ORDERS",
+        subtitle: "Staging",
+        fields: [
+          { id: "order_id", dataType: "bigint" },
+          { id: "customer_id", dataType: "bigint" },
+          { id: "created_at", dataType: "timestamp" },
+        ],
+      },
+      {
+        id: "fct_orders",
+        label: "FCT_ORDERS",
+        subtitle: "Warehouse",
+        fields: [
+          { id: "order_key", dataType: "bigint" },
+          { id: "customer_key", dataType: "bigint" },
+          { id: "ordered_at", dataType: "timestamp" },
+        ],
+      },
+    ],
+    edges: [
+      ["raw_orders", "stg_orders", "order_id", "order_id"],
+      ["raw_orders", "stg_orders", "customer_id", "customer_id"],
+      ["raw_orders", "stg_orders", "created_at", "created_at"],
+      ["stg_orders", "fct_orders", "order_id", "order_key"],
+      ["stg_orders", "fct_orders", "customer_id", "customer_key"],
+      ["stg_orders", "fct_orders", "created_at", "ordered_at"],
+    ].map(([source, target, sourceField, targetField], index) => ({
+      source: source!,
+      target: target!,
+      sourceField: sourceField!,
+      targetField: targetField!,
+      ...(index < 3 ? {} : { transformType: "rename" as const }),
+    })),
+  };
+}
+
+function columnTransformGraph(): LineageGraphData {
+  return {
+    schemaVersion: "1.0",
+    nodes: [
+      {
+        id: "raw_payments",
+        label: "RAW_PAYMENTS",
+        fields: [
+          { id: "payment_id", dataType: "string" },
+          { id: "amount_cents", dataType: "bigint" },
+          { id: "currency", dataType: "string" },
+        ],
+      },
+      {
+        id: "fct_payments",
+        label: "FCT_PAYMENTS",
+        fields: [
+          { id: "payment_key", dataType: "string" },
+          { id: "amount_usd", dataType: "decimal(18,2)" },
+        ],
+      },
+      {
+        id: "daily_revenue",
+        label: "DAILY_REVENUE",
+        fields: [{ id: "gross_revenue_usd", dataType: "decimal(18,2)" }],
+      },
+    ],
+    edges: [
+      {
+        source: "raw_payments",
+        target: "fct_payments",
+        sourceField: "payment_id",
+        targetField: "payment_key",
+        label: "rename",
+        transformType: "rename",
+        expression: "payment_id",
+      },
+      {
+        source: "raw_payments",
+        target: "fct_payments",
+        sourceField: "amount_cents",
+        targetField: "amount_usd",
+        label: "convert",
+        transformType: "transform",
+        expression: "amount_cents / 100.0",
+      },
+      {
+        source: "fct_payments",
+        target: "daily_revenue",
+        sourceField: "amount_usd",
+        targetField: "gross_revenue_usd",
+        label: "sum",
+        transformType: "aggregate",
+        expression: "SUM(amount_usd)",
+      },
+    ],
+  };
+}
+
+function mixedLineageGraph(): LineageGraphData {
+  return {
+    schemaVersion: "1.0",
+    nodes: [
+      {
+        id: "ods_orders",
+        label: "ODS_ORDERS",
+        subtitle: "Source table",
+        fields: [
+          { id: "order_id", dataType: "bigint" },
+          { id: "ordered_at", dataType: "timestamp" },
+          { id: "amount", dataType: "decimal(18,2)" },
+        ],
+      },
+      {
+        id: "dwd_orders",
+        label: "DWD_ORDERS",
+        subtitle: "Detail model",
+        fields: [
+          { id: "order_key", dataType: "bigint" },
+          { id: "ordered_at", dataType: "timestamp" },
+          { id: "net_amount", dataType: "decimal(18,2)" },
+        ],
+      },
+      {
+        id: "dws_sales",
+        label: "DWS_SALES",
+        subtitle: "Aggregate model",
+        fields: [{ id: "gross_sales", dataType: "decimal(18,2)" }],
+      },
+      { id: "quality_job", label: "ORDER_QUALITY_CHECK", type: "job" },
+    ],
+    edges: [
+      { source: "ods_orders", target: "dwd_orders", label: "table dependency" },
+      { source: "dwd_orders", target: "quality_job", type: "dependency" },
+      {
+        source: "ods_orders",
+        target: "dwd_orders",
+        sourceField: "order_id",
+        targetField: "order_key",
+        transformType: "rename",
+      },
+      {
+        source: "ods_orders",
+        target: "dwd_orders",
+        sourceField: "ordered_at",
+        targetField: "ordered_at",
+        transformType: "passthrough",
+      },
+      {
+        source: "ods_orders",
+        target: "dwd_orders",
+        sourceField: "amount",
+        targetField: "net_amount",
+        transformType: "transform",
+        expression: "amount - discount",
+      },
+      {
+        source: "dwd_orders",
+        target: "dws_sales",
+        sourceField: "net_amount",
+        targetField: "gross_sales",
+        transformType: "aggregate",
+        expression: "SUM(net_amount)",
+      },
+    ],
+  };
+}
+
 export const demos: readonly LineageDemoDefinition[] = [
   {
     id: "simple-pipeline",
@@ -136,6 +316,39 @@ export const demos: readonly LineageDemoDefinition[] = [
         edge("dws_trade", "ads_daily_sales"),
       ],
     },
+  },
+  {
+    id: "column-basic",
+    title: "Basic column lineage",
+    summary: "Direct field mappings across raw, staging, and warehouse tables.",
+    description:
+      "Select any field to highlight its complete upstream and downstream column lineage.",
+    tags: ["columns", "field selection", "lineage"],
+    viewerOptions: { viewMode: "column", highlightMode: "both" },
+    graph: columnBasicGraph(),
+  },
+  {
+    id: "column-transform",
+    title: "Column transformations",
+    summary: "Rename, transform, and aggregate mappings with expressions.",
+    description: "Inspect field-level transformation types, expressions, and labeled column edges.",
+    tags: ["columns", "transforms", "expressions"],
+    viewerOptions: {
+      viewMode: "column",
+      highlightMode: "both",
+      showEdgeLabels: true,
+    },
+    graph: columnTransformGraph(),
+  },
+  {
+    id: "mixed-lineage",
+    title: "Mixed table and column lineage",
+    summary: "Table dependencies and field mappings in one graph.",
+    description:
+      "Switch between table, column, and mixed projections while preserving the source lineage data.",
+    tags: ["mixed lineage", "view modes", "columns"],
+    viewerOptions: { viewMode: "mixed", highlightMode: "both" },
+    graph: mixedLineageGraph(),
   },
   {
     id: "fan-in-join",
@@ -279,6 +492,24 @@ const chineseDemoText: Record<
     summary: "从 ODS 到 ADS 的最小血缘链路。",
     description: "用于查看基础分层布局的紧凑快速开始场景。",
     tags: ["快速开始", "布局"],
+  },
+  "column-basic": {
+    title: "基础字段血缘",
+    summary: "展示原始表、暂存表和事实表之间的直接字段映射。",
+    description: "选择任意字段，高亮其完整的上游和下游字段血缘路径。",
+    tags: ["字段血缘", "字段选择", "路径高亮"],
+  },
+  "column-transform": {
+    title: "字段转换",
+    summary: "展示带表达式的重命名、转换和聚合映射。",
+    description: "查看字段级转换类型、计算表达式和带标签的字段连线。",
+    tags: ["字段血缘", "数据转换", "表达式"],
+  },
+  "mixed-lineage": {
+    title: "表与字段混合血缘",
+    summary: "在同一张图中展示表依赖和字段映射。",
+    description: "在表级、字段级和混合视图之间切换，同时保留原始血缘数据。",
+    tags: ["混合血缘", "视图模式", "字段血缘"],
   },
   "fan-in-join": {
     title: "多路汇聚",

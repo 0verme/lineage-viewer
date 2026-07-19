@@ -134,3 +134,82 @@ test("renders field names and data types inside dynamically sized table nodes", 
   await expect(viewer.locator('.node[data-node-id="customers"] .fields')).toHaveCount(0);
   await expect(viewer.locator('.node[data-node-id="legacy"] .fields')).toHaveCount(0);
 });
+
+test("selects a field and highlights its complete column lineage", async ({ page }) => {
+  await page.goto("/examples/vanilla/");
+  const viewer = page.locator("lineage-viewer");
+  await viewer.evaluate((element) => {
+    (element as HTMLElement).style.height = "480px";
+    (
+      element as unknown as {
+        setData(data: unknown): void;
+        setOptions(options: unknown): void;
+      }
+    ).setOptions({ highlightMode: "both" });
+    (
+      element as unknown as {
+        setData(data: unknown): void;
+      }
+    ).setData({
+      nodes: [
+        { id: "a", label: "A", fields: [{ id: "id" }, { id: "other" }] },
+        { id: "b", label: "B", fields: [{ id: "id" }] },
+        { id: "c", label: "C", fields: [{ id: "id" }] },
+        { id: "d", label: "D", fields: [{ id: "id" }] },
+      ],
+      edges: [
+        { source: "a", target: "b", sourceField: "id", targetField: "id" },
+        { source: "b", target: "c", sourceField: "id", targetField: "id" },
+        { source: "c", target: "a", sourceField: "id", targetField: "id" },
+        { source: "d", target: "c" },
+      ],
+    });
+  });
+  await expect(viewer).toBeVisible();
+
+  const selection = viewer.evaluate((element) => {
+    return new Promise<unknown>((resolve) => {
+      element.addEventListener("lineage-selection-change", (event) => {
+        resolve((event as CustomEvent).detail);
+      });
+    });
+  });
+  const fieldClick = viewer.evaluate((element) => {
+    return new Promise<unknown>((resolve) => {
+      element.addEventListener("lineage-field-click", (event) => {
+        resolve((event as CustomEvent).detail);
+      });
+    });
+  });
+  await viewer.locator('.node[data-node-id="b"] .field-row[data-field-id="id"]').click();
+  await expect(
+    viewer.locator('.node[data-node-id="b"] .field-row[data-field-id="id"]'),
+  ).toHaveAttribute("data-selected", "");
+  await expect(viewer.locator(".column-edge[data-highlighted]")).toHaveCount(3);
+  await expect(viewer.locator(".table-edge")).toHaveAttribute("data-dimmed", "");
+  await expect(viewer.locator('.node[data-node-id="d"]')).toHaveAttribute("data-dimmed", "");
+  await expect(
+    viewer.locator('.node[data-node-id="a"] .field-row[data-field-id="other"]'),
+  ).toHaveAttribute("data-dimmed", "");
+  await expect(selection).resolves.toMatchObject({
+    selectedNodeId: null,
+    selectedField: { nodeId: "b", fieldId: "id" },
+    field: { id: "id" },
+    source: "pointer",
+  });
+  await expect(fieldClick).resolves.toMatchObject({
+    nodeId: "b",
+    fieldId: "id",
+    field: { id: "id" },
+  });
+  expect(
+    await viewer.evaluate(
+      (element) =>
+        (
+          element as unknown as {
+            selectedField: { nodeId: string; fieldId: string } | null;
+          }
+        ).selectedField,
+    ),
+  ).toEqual({ nodeId: "b", fieldId: "id" });
+});

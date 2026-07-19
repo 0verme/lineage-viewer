@@ -1,5 +1,9 @@
 import { normalizeLineageGraphData, type NormalizedLineageGraph } from "../graph/index.js";
-import { calculateInteractionState, ViewportController } from "../interactions/index.js";
+import {
+  calculateInteractionState,
+  ViewportController,
+  type FieldReference,
+} from "../interactions/index.js";
 import type {
   SceneBounds,
   ViewportFitOptions,
@@ -16,6 +20,8 @@ import {
 } from "../public-api/options.js";
 import type {
   LineageDiagnosticEventDetail,
+  LineageFieldClickEventDetail,
+  LineageFieldSelection,
   LineageNodeClickEventDetail,
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,
@@ -37,6 +43,7 @@ export class LineageViewerElement extends ElementBase {
   private input: unknown = null;
   private resolvedOptions: ResolvedLineageViewerOptions = defaultLineageViewerOptions;
   private selectedId: string | null = null;
+  private selectedFieldRef: FieldReference | null = null;
   private initialized = false;
   private readyDispatched = false;
   private hasObservedViewport = false;
@@ -66,6 +73,11 @@ export class LineageViewerElement extends ElementBase {
   }
   get selectedNodeId(): string | null {
     return this.state === "destroyed" ? null : this.selectedId;
+  }
+  get selectedField(): LineageFieldSelection | null {
+    return this.state === "destroyed" || this.selectedFieldRef === null
+      ? null
+      : { ...this.selectedFieldRef };
   }
   connectedCallback(): void {
     if (this.state === "destroyed") return;
@@ -140,6 +152,10 @@ export class LineageViewerElement extends ElementBase {
     const id = nodeId.trim();
     if (this.graph?.nodeById.has(id)) this.updateSelection(id, "api");
   }
+  selectField(nodeId: string, fieldId: string): void {
+    const reference = { nodeId: nodeId.trim(), fieldId: fieldId.trim() };
+    if (this.findField(reference) !== null) this.updateFieldSelection(reference, "api");
+  }
   clearSelection(): void {
     this.updateSelection(null, "api");
   }
@@ -154,6 +170,7 @@ export class LineageViewerElement extends ElementBase {
     this.graph = null;
     this.scene = null;
     this.selectedId = null;
+    this.selectedFieldRef = null;
     this.diagnostics = [];
     this.state = "destroyed";
   }
@@ -196,12 +213,15 @@ export class LineageViewerElement extends ElementBase {
       result.graph === null ? "invalid" : result.graph.nodes.length === 0 ? "empty" : "rendered";
     if (this.selectedId !== null && !this.graph?.nodeById.has(this.selectedId))
       this.updateSelection(null, "data");
+    if (this.selectedFieldRef !== null && this.findField(this.selectedFieldRef) === null)
+      this.updateFieldSelection(null, "data");
     this.renderCurrent(true);
     if (emitEvents && this.isConnected) this.emitDiagnostics();
     this.dispatchReadyIfPossible();
   }
   private clearForData(): void {
-    if (this.selectedId !== null) this.updateSelection(null, "data");
+    if (this.selectedId !== null || this.selectedFieldRef !== null)
+      this.updateSelection(null, "data");
   }
   private renderCurrent(newScene: boolean): void {
     if (!this.initialized || this.renderer === null) return;
@@ -242,27 +262,85 @@ export class LineageViewerElement extends ElementBase {
   }
   private applyInteractionState(): void {
     this.renderer?.setInteractionState(
-      calculateInteractionState(this.graph, this.selectedId, this.resolvedOptions.highlightMode),
+      calculateInteractionState(
+        this.graph,
+        this.selectedId,
+        this.resolvedOptions.highlightMode,
+        this.selectedFieldRef,
+      ),
     );
   }
   private updateSelection(next: string | null, source: "pointer" | "api" | "data"): void {
-    if (next === this.selectedId) return;
+    if (next === this.selectedId && this.selectedFieldRef === null) return;
     const previousSelectedNodeId = this.selectedId;
+    const previousSelectedField = this.selectedFieldRef;
     this.selectedId = next;
+    this.selectedFieldRef = null;
     this.applyInteractionState();
     const node = next === null ? null : (this.graph?.nodeById.get(next) ?? null);
+    this.emitSelectionChange(
+      previousSelectedNodeId,
+      previousSelectedField,
+      node ?? null,
+      null,
+      source,
+    );
+  }
+  private updateFieldSelection(
+    next: FieldReference | null,
+    source: "pointer" | "api" | "data",
+  ): void {
+    if (
+      next?.nodeId === this.selectedFieldRef?.nodeId &&
+      next?.fieldId === this.selectedFieldRef?.fieldId &&
+      this.selectedId === null
+    )
+      return;
+    const previousSelectedNodeId = this.selectedId;
+    const previousSelectedField = this.selectedFieldRef;
+    this.selectedId = null;
+    this.selectedFieldRef = next;
+    this.applyInteractionState();
+    const match = next === null ? null : this.findField(next);
+    this.emitSelectionChange(
+      previousSelectedNodeId,
+      previousSelectedField,
+      match?.node ?? null,
+      match?.field ?? null,
+      source,
+    );
+  }
+  private emitSelectionChange(
+    previousSelectedNodeId: string | null,
+    previousSelectedField: FieldReference | null,
+    node: NormalizedLineageGraph["nodes"][number] | null,
+    field: NonNullable<NormalizedLineageGraph["nodes"][number]["fields"]>[number] | null,
+    source: "pointer" | "api" | "data",
+  ): void {
     this.dispatchEvent(
       new CustomEvent<LineageSelectionChangeEventDetail>("lineage-selection-change", {
         detail: {
-          selectedNodeId: next,
+          selectedNodeId: this.selectedId,
           previousSelectedNodeId,
+          selectedField: this.selectedFieldRef === null ? null : { ...this.selectedFieldRef },
+          previousSelectedField:
+            previousSelectedField === null ? null : { ...previousSelectedField },
           node: node === null ? null : { ...node },
+          field: field === null ? null : { ...field },
           source,
         },
         bubbles: true,
         composed: true,
       }),
     );
+  }
+  private findField(reference: FieldReference): {
+    node: NormalizedLineageGraph["nodes"][number];
+    field: NonNullable<NormalizedLineageGraph["nodes"][number]["fields"]>[number];
+  } | null {
+    const node = this.graph?.nodeById.get(reference.nodeId);
+    const field = node?.fields?.find((candidate) => candidate.id === reference.fieldId);
+    return node && field ? { node, field } : null;
   }
   private findSceneNode(value: string): RenderScene["nodes"][number] | undefined {
     const id = value.trim();
@@ -307,9 +385,30 @@ export class LineageViewerElement extends ElementBase {
       this.suppressClick = false;
       return;
     }
+    const fieldTarget =
+      event.target instanceof Element ? event.target.closest<SVGGElement>(".field-row") : null;
     const target =
       event.target instanceof Element ? event.target.closest<SVGGElement>(".node") : null;
     const id = target?.dataset["nodeId"];
+    const fieldId = fieldTarget?.dataset["fieldId"];
+    if (id && fieldId && this.graph) {
+      const match = this.findField({ nodeId: id, fieldId });
+      if (!match) return;
+      this.dispatchEvent(
+        new CustomEvent<LineageFieldClickEventDetail>("lineage-field-click", {
+          detail: {
+            nodeId: id,
+            fieldId,
+            node: { ...match.node },
+            field: { ...match.field },
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+      this.updateFieldSelection({ nodeId: id, fieldId }, "pointer");
+      return;
+    }
     if (id && this.graph) {
       const node = this.graph.nodeById.get(id);
       if (!node) return;

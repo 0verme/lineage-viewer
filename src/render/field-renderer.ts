@@ -27,6 +27,13 @@ export class FieldRenderer {
       row.setAttribute("data-field-id", field.id);
       const center = fieldRowCenter(item.node, field.id);
       if (center === null) continue;
+      const hitArea = createSvgElement("rect");
+      hitArea.setAttribute("class", "field-hit-area");
+      hitArea.setAttribute("x", "0");
+      hitArea.setAttribute("y", String(header + index * fieldRowHeight));
+      hitArea.setAttribute("width", String(item.width));
+      hitArea.setAttribute("height", String(fieldRowHeight));
+      row.append(hitArea);
       const baseline = header + index * fieldRowHeight + 19;
       const label = createSvgElement("text");
       label.setAttribute("class", "field-name");

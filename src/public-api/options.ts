@@ -11,7 +11,7 @@ export interface LineageViewerOptions {
   nodeHeight?: number;
   layerGap?: number;
   nodeGap?: number;
-  highlightMode?: "connected" | "upstream" | "downstream" | "none";
+  highlightMode?: "connected" | "both" | "upstream" | "downstream" | "none";
 }
 
 export interface ResolvedLineageViewerOptions {
@@ -25,7 +25,7 @@ export interface ResolvedLineageViewerOptions {
   readonly nodeHeight: number;
   readonly layerGap: number;
   readonly nodeGap: number;
-  readonly highlightMode: "connected" | "upstream" | "downstream" | "none";
+  readonly highlightMode: "connected" | "both" | "upstream" | "downstream" | "none";
 }
 
 export const defaultLineageViewerOptions: ResolvedLineageViewerOptions = {
@@ -82,6 +82,10 @@ function isDirection(value: unknown): value is ResolvedLineageViewerOptions["dir
 }
 function isHighlightMode(value: unknown): value is ResolvedLineageViewerOptions["highlightMode"] {
   return (
-    value === "connected" || value === "upstream" || value === "downstream" || value === "none"
+    value === "connected" ||
+    value === "both" ||
+    value === "upstream" ||
+    value === "downstream" ||
+    value === "none"
   );
 }

@@ -11,6 +11,8 @@ export type {
 } from "./interactions/index.js";
 export type {
   LineageDiagnosticEventDetail,
+  LineageFieldClickEventDetail,
+  LineageFieldSelection,
   LineageNodeClickEventDetail,
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,

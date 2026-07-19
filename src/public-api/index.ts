@@ -1,5 +1,7 @@
 export type {
   LineageDiagnosticEventDetail,
+  LineageFieldClickEventDetail,
+  LineageFieldSelection,
   LineageNodeClickEventDetail,
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,

@@ -1,5 +1,9 @@
 import "../../src/define.js";
-import type { LineageEdge, LineageViewerElement } from "../../src/index.js";
+import type {
+  LineageEdge,
+  LineageEdgeClickEventDetail,
+  LineageViewerElement,
+} from "../../src/index.js";
 
 const viewer = document.querySelector("lineage-viewer") as LineageViewerElement;
 const status = document.querySelector<HTMLElement>(".status");
@@ -73,6 +77,13 @@ viewer.addEventListener("lineage-field-click", (event) => {
       (edge.target === nodeId && edge.targetField === fieldId),
   );
   if (status) status.textContent = describeMappings(nodeId, fieldId, mappings);
+});
+viewer.addEventListener("lineage-edge-click", (event) => {
+  const detail = (event as CustomEvent<LineageEdgeClickEventDetail>).detail;
+  if (status)
+    status.textContent = `${detail.source.label} → ${detail.target.label} | ${
+      detail.transformType ?? "unknown"
+    }: ${detail.expression ?? "no expression"}`;
 });
 document
   .querySelector<HTMLButtonElement>('[data-action="fit"]')

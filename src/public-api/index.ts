@@ -1,5 +1,7 @@
 export type {
   LineageDiagnosticEventDetail,
+  LineageEdgeClickEventDetail,
+  LineageEdgeEndpoint,
   LineageFieldClickEventDetail,
   LineageFieldSelection,
   LineageNodeClickEventDetail,
@@ -11,6 +13,7 @@ export type {
 export { defaultLineageViewerOptions, resolveOptions } from "./options.js";
 export type { LineageViewerOptions, LineageViewMode } from "./options.js";
 export type {
+  LineageFieldLocation,
   LineageFieldSearchResult,
   LineageSearchFilter,
   LineageSearchOptions,

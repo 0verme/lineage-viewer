@@ -1,6 +1,7 @@
 import { defineLineageViewer } from "lineage-viewer";
 import type {
   LineageEdge,
+  LineageEdgeClickEventDetail,
   LineageField,
   LineageNode,
   LineageSelectionChangeEventDetail,
@@ -160,6 +161,7 @@ function render(current: LineageDemoDefinition): void {
     "lineage-ready",
     "lineage-node-click",
     "lineage-field-click",
+    "lineage-edge-click",
     "lineage-selection-change",
     "lineage-error",
     "lineage-warning",
@@ -180,6 +182,11 @@ function render(current: LineageDemoDefinition): void {
       : (detail.node?.id ?? t("noSelectedNode"));
     selected.textContent = t("selected", { value });
     renderSelection(nodeContent, detail.node, detail.field, current.graph.edges);
+  });
+  viewer.addEventListener("lineage-edge-click", (event) => {
+    const detail = (event as CustomEvent<LineageEdgeClickEventDetail>).detail;
+    selected.textContent = `${detail.source.label} → ${detail.target.label}`;
+    renderEdgeDetail(nodeContent, detail);
   });
   queueMicrotask(refreshDiagnostics);
 }
@@ -290,6 +297,23 @@ function renderSelection(
     }
     target.append(mapping);
   }
+}
+function renderEdgeDetail(target: HTMLElement, detail: LineageEdgeClickEventDetail): void {
+  target.replaceChildren(element("h3", t("transforms")));
+  const mapping = element("div");
+  mapping.className = "transform-detail";
+  for (const [key, value] of [
+    [t("source"), detail.source.label],
+    [t("target"), detail.target.label],
+    [t("transformType"), detail.transformType ?? "—"],
+    [t("expression"), detail.expression ?? "—"],
+  ]) {
+    const row = element("div");
+    row.className = "detail";
+    append(row, element("strong", key), element("span", value));
+    mapping.append(row);
+  }
+  target.append(mapping);
 }
 function safeJson(value: unknown): string {
   try {

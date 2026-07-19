@@ -43,6 +43,11 @@ viewer.addEventListener("lineage-field-click", (event) => {
   const { nodeId, fieldId } = (event as CustomEvent).detail;
   console.log(nodeId, fieldId);
 });
+
+viewer.addEventListener("lineage-edge-click", (event) => {
+  const { source, target, transformType, expression } = (event as CustomEvent).detail;
+  console.log(source.label, target.label, transformType, expression);
+});
 ```
 
 ## Search and filtering
@@ -50,10 +55,14 @@ viewer.addEventListener("lineage-field-click", (event) => {
 ```ts
 const matches = viewer.search("customer");
 const bigintFields = viewer.search("", { dataType: "bigint" });
+const positionedFields = viewer.searchFields("decimal");
 viewer.clearSearch();
 ```
 
 Search results are stable snapshots with `{ kind: "table", nodeId }` or `{ kind: "field", nodeId, fieldId }`.
+`searchFields()` matches field names, table names, and data types, returns
+`{ nodeId, fieldId, label }`, and positions the first result. Call `focusField()` to position
+another result.
 
 ## Runnable examples
 

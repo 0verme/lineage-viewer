@@ -17,4 +17,10 @@ export interface LineageFieldSearchResult {
   readonly fieldId: string;
 }
 
+export interface LineageFieldLocation {
+  readonly nodeId: string;
+  readonly fieldId: string;
+  readonly label: string;
+}
+
 export type LineageSearchResult = LineageTableSearchResult | LineageFieldSearchResult;

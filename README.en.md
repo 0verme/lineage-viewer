@@ -189,6 +189,7 @@ Use `table`, `column`, or `mixed` view mode; `mixed` is the default. Search by t
 ```ts
 viewer.search("amount");
 viewer.search("", { dataType: "bigint" });
+viewer.searchFields("decimal"); // matches field, table, or type and focuses the first result
 viewer.clearSearch();
 ```
 
@@ -204,11 +205,11 @@ All inputs are JavaScript properties; no HTML attributes are observed or synchro
 
 ## JavaScript API
 
-The public API includes data/options, viewport controls, node/field selection, `search()`, `clearSearch()`, and `destroy()`. Unknown node or field IDs are ignored. See the [public API](docs/public-api.md).
+The public API includes data/options, viewport controls, node/field selection, `search()`, `searchFields()`, `focusField()`, `clearSearch()`, and `destroy()`. Unknown node or field IDs are ignored. See the [public API](docs/public-api.md).
 
 ## Events
 
-The component dispatches bubbling, composed `CustomEvent`s including `lineage-node-click`, `lineage-field-click`, and `lineage-selection-change`. See [public API](docs/public-api.md) for all events and detail shapes.
+The component dispatches bubbling, composed `CustomEvent`s including `lineage-node-click`, `lineage-field-click`, `lineage-edge-click`, and `lineage-selection-change`. Edge click details include source, target, transform type, and expression. See [public API](docs/public-api.md) for all event shapes.
 
 ## Highlighting and interaction
 

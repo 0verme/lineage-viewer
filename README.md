@@ -159,15 +159,15 @@ defineLineageViewer();
 
 ## JavaScript API
 
-`setData(data)`、`setOptions(options)`、`getDiagnostics()`、`fitView()`、`resetView()`、`focusNode(nodeId)`、`selectNode(nodeId)`、`clearSelection()` 与 `destroy()` 均为当前公开 API。未知节点的 `focusNode` / `selectNode` 不执行操作；`destroy()` 幂等且会永久禁用实例。详见[公共 API](docs/public-api.md)。
+`setData(data)`、`setOptions(options)`、`getDiagnostics()`、`fitView()`、`resetView()`、`focusNode(nodeId)`、`focusField(nodeId, fieldId)`、`selectNode(nodeId)`、`selectField(nodeId, fieldId)`、`search()`、`searchFields()`、`clearSelection()` 与 `destroy()` 均为当前公开 API。`searchFields(keyword)` 会按字段名、表名或类型匹配并定位首个结果。未知节点或字段 ID 不执行操作；`destroy()` 幂等且会永久禁用实例。详见[公共 API](docs/public-api.md)。
 
 ## 事件
 
-组件派发会冒泡且可穿透 Shadow DOM 的 `CustomEvent`：`lineage-ready`、`lineage-error`、`lineage-warning`、`lineage-node-click`、`lineage-selection-change`。事件 detail 的完整结构见[公共 API](docs/public-api.md)。
+组件派发会冒泡且可穿透 Shadow DOM 的 `CustomEvent`：`lineage-ready`、`lineage-error`、`lineage-warning`、`lineage-node-click`、`lineage-field-click`、`lineage-edge-click`、`lineage-selection-change`。边点击事件包含来源、目标、转换类型和表达式。事件 detail 的完整结构见[公共 API](docs/public-api.md)。
 
 ## 高亮与交互
 
-鼠标滚轮以指针位置为锚点 zoom；空白处可拖动平移。点击节点会选择节点并触发事件，点击空白处会清除选择。`highlightMode` 可为 `connected`、`upstream`、`downstream` 或 `none`；可用 `fitView()`、`resetView()` 和 `focusNode()` 控制视图。
+鼠标滚轮以指针位置为锚点 zoom；空白处可拖动平移。点击节点或字段会选择并高亮血缘路径，点击字段边可检查转换详情，点击空白处会清除选择。`highlightMode` 可为 `connected`、`both`、`upstream`、`downstream` 或 `none`；可用 `fitView()`、`resetView()`、`focusNode()` 和 `focusField()` 控制视图。
 
 ## 严格模式与宽松模式
 

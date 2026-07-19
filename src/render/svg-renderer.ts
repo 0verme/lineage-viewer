@@ -9,6 +9,7 @@ import type { RenderEdge, RenderNode, RenderScene } from "./types.js";
 
 interface EdgeElements {
   readonly path: SVGPathElement;
+  readonly hitArea: SVGPathElement;
   label: SVGTextElement | null;
   signature: string;
   item: RenderEdge;
@@ -82,6 +83,7 @@ export class SvgRenderer {
       if (elements === undefined) {
         elements = {
           path: createSvgElement("path"),
+          hitArea: createSvgElement("path"),
           label: null,
           signature: "",
           item,
@@ -90,13 +92,15 @@ export class SvgRenderer {
       }
       if (elements.signature !== signature) {
         updateEdgePath(elements.path, item, this.markerId);
+        updateEdgeHitArea(elements.hitArea, item);
         elements.signature = signature;
         elements.item = item;
       }
-      this.edgesGroup.append(elements.path);
+      this.edgesGroup.append(elements.hitArea, elements.path);
     }
     for (const [key, elements] of this.edgeElements)
       if (!activeEdgeKeys.has(key)) {
+        elements.hitArea.remove();
         elements.path.remove();
         elements.label?.remove();
         this.edgeElements.delete(key);
@@ -241,6 +245,10 @@ function edgeSignature(item: RenderEdge): string {
     item.edge.target,
     item.edge.sourceField,
     item.edge.targetField,
+    item.edge.label,
+    item.edge.type,
+    item.edge.transformType,
+    item.edge.expression,
   ]);
 }
 
@@ -271,6 +279,12 @@ function updateEdgePath(path: SVGPathElement, item: RenderEdge, markerId: string
   path.setAttribute("data-edge-target", item.edge.target);
   setOptionalAttribute(path, "data-edge-source-field", item.edge.sourceField);
   setOptionalAttribute(path, "data-edge-target-field", item.edge.targetField);
+}
+
+function updateEdgeHitArea(path: SVGPathElement, item: RenderEdge): void {
+  path.setAttribute("class", "edge-hit-area");
+  path.setAttribute("d", item.path);
+  path.setAttribute("data-edge-key", item.key);
 }
 
 function createEdgeLabel(): SVGTextElement {

@@ -158,7 +158,14 @@ test("selects a field and highlights its complete column lineage", async ({ page
         { id: "d", label: "D", fields: [{ id: "id" }] },
       ],
       edges: [
-        { source: "a", target: "b", sourceField: "id", targetField: "id" },
+        {
+          source: "a",
+          target: "b",
+          sourceField: "id",
+          targetField: "id",
+          transformType: "aggregate",
+          expression: "SUM(id)",
+        },
         { source: "b", target: "c", sourceField: "id", targetField: "id" },
         { source: "c", target: "a", sourceField: "id", targetField: "id" },
         { source: "d", target: "c" },
@@ -212,6 +219,26 @@ test("selects a field and highlights its complete column lineage", async ({ page
         ).selectedField,
     ),
   ).toEqual({ nodeId: "b", fieldId: "id" });
+
+  const edgeClick = viewer.evaluate((element) => {
+    return new Promise<unknown>((resolve) => {
+      element.addEventListener("lineage-edge-click", (event) => {
+        resolve((event as CustomEvent).detail);
+      });
+    });
+  });
+  await viewer
+    .locator(".edge-hit-area")
+    .first()
+    .evaluate((edge) =>
+      edge.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true })),
+    );
+  await expect(edgeClick).resolves.toMatchObject({
+    source: { nodeId: "a", fieldId: "id", label: "a.id" },
+    target: { nodeId: "b", fieldId: "id", label: "b.id" },
+    transformType: "aggregate",
+    expression: "SUM(id)",
+  });
 });
 
 test("switches between mixed, table, and column view modes", async ({ page }) => {
@@ -345,6 +372,18 @@ test("searches table and field names and filters by data type", async ({ page })
     "",
   );
   await expect(viewer.locator(".edge[data-search-dimmed]")).toHaveCount(1);
+
+  const fieldLocations = await viewer.evaluate((element) =>
+    (
+      element as unknown as {
+        searchFields(keyword: string): unknown;
+      }
+    ).searchFields("JSON"),
+  );
+  expect(fieldLocations).toEqual([{ nodeId: "audit", fieldId: "payload", label: "payload" }]);
+  await expect(
+    viewer.locator('.node[data-node-id="audit"] .field-row[data-field-id="payload"]'),
+  ).toHaveAttribute("data-search-match", "");
 
   await viewer.evaluate((element) => {
     (

@@ -4,6 +4,7 @@ import type { LineageSearchOptions, LineageSearchResult } from "../../../src/ind
 import {
   calculateSearchState,
   normalizeSearchOptions,
+  searchFields,
   searchLineageGraph,
 } from "../../../src/search/index.js";
 import { createLineageViewGraph } from "../../../src/view/index.js";
@@ -66,6 +67,18 @@ describe("field search", () => {
       { kind: "field", nodeId: "orders", fieldId: "created_at" },
     ]);
     expect(searchLineageGraph(graph, { query: "created", dataType: "bigint" })).toEqual([]);
+  });
+
+  it("searches fields by field name, table name, or data type with location labels", () => {
+    expect(searchFields(graph, "customer")).toEqual([
+      { nodeId: "customers", fieldId: "id", label: "id" },
+      { nodeId: "orders", fieldId: "customer_id", label: "Customer ID" },
+      { nodeId: "orders", fieldId: "created_at", label: "created_at" },
+    ]);
+    expect(searchFields(graph, "JSON")).toEqual([
+      { nodeId: "audit", fieldId: "payload", label: "payload" },
+    ]);
+    expect(searchFields(graph, "   ")).toEqual([]);
   });
 
   it("exports public search types from the package root", () => {

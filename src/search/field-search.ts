@@ -1,5 +1,9 @@
 import type { NormalizedLineageGraph } from "../graph/index.js";
-import type { LineageSearchOptions, LineageSearchResult } from "../public-api/search.js";
+import type {
+  LineageFieldLocation,
+  LineageSearchOptions,
+  LineageSearchResult,
+} from "../public-api/search.js";
 
 export function normalizeSearchOptions(
   queryOrOptions: string | LineageSearchOptions,
@@ -38,6 +42,29 @@ export function searchLineageGraph(
         dataType === undefined || field.dataType?.toLocaleLowerCase() === dataType;
       if (nameMatches && typeMatches)
         results.push({ kind: "field", nodeId: node.id, fieldId: field.id });
+    }
+  }
+  return results;
+}
+
+export function searchFields(
+  graph: NormalizedLineageGraph | null,
+  keyword: string,
+): readonly LineageFieldLocation[] {
+  if (graph === null) return [];
+  const query = normalizeTerm(keyword)?.toLocaleLowerCase();
+  if (query === undefined) return [];
+  const results: LineageFieldLocation[] = [];
+  for (const node of graph.nodes) {
+    const tableMatches = matchesName(node.id, node.label, query);
+    for (const field of node.fields ?? []) {
+      const label = field.label ?? field.id;
+      if (
+        tableMatches ||
+        matchesName(field.id, label, query) ||
+        field.dataType?.toLocaleLowerCase().includes(query)
+      )
+        results.push({ nodeId: node.id, fieldId: field.id, label });
     }
   }
   return results;

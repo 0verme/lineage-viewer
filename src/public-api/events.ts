@@ -1,5 +1,10 @@
 import type { LineageDiagnostic } from "../schema/diagnostics.js";
-import type { LineageField, LineageNode } from "../schema/types.js";
+import type {
+  LineageEdge,
+  LineageField,
+  LineageNode,
+  LineageTransformType,
+} from "../schema/types.js";
 
 export interface LineageFieldSelection {
   nodeId: string;
@@ -23,6 +28,19 @@ export interface LineageFieldClickEventDetail extends LineageFieldSelection {
   node: LineageNode;
   field: LineageField;
 }
+export interface LineageEdgeEndpoint {
+  nodeId: string;
+  fieldId: string | null;
+  label: string;
+}
+export interface LineageEdgeClickEventDetail {
+  edgeKey: string;
+  edge: LineageEdge;
+  source: LineageEdgeEndpoint;
+  target: LineageEdgeEndpoint;
+  transformType: LineageTransformType | null;
+  expression: string | null;
+}
 export interface LineageSelectionChangeEventDetail {
   selectedNodeId: string | null;
   previousSelectedNodeId: string | null;
@@ -38,6 +56,7 @@ export interface LineageViewerEventDetailMap {
   "lineage-warning": LineageDiagnosticEventDetail;
   "lineage-node-click": LineageNodeClickEventDetail;
   "lineage-field-click": LineageFieldClickEventDetail;
+  "lineage-edge-click": LineageEdgeClickEventDetail;
   "lineage-selection-change": LineageSelectionChangeEventDetail;
 }
 export type LineageViewerEventName =
@@ -46,4 +65,5 @@ export type LineageViewerEventName =
   | "lineage-warning"
   | "lineage-node-click"
   | "lineage-field-click"
+  | "lineage-edge-click"
   | "lineage-selection-change";

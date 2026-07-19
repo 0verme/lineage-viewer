@@ -20,6 +20,7 @@ import {
 } from "../public-api/options.js";
 import type {
   LineageDiagnosticEventDetail,
+  LineageEdgeClickEventDetail,
   LineageFieldClickEventDetail,
   LineageFieldSelection,
   LineageNodeClickEventDetail,
@@ -27,6 +28,7 @@ import type {
   LineageSelectionChangeEventDetail,
 } from "../public-api/events.js";
 import type {
+  LineageFieldLocation,
   LineageSearchFilter,
   LineageSearchOptions,
   LineageSearchResult,
@@ -34,6 +36,7 @@ import type {
 import {
   calculateSearchState,
   normalizeSearchOptions,
+  searchFields as searchFieldLocations,
   searchLineageGraph,
 } from "../search/index.js";
 import { createLineageViewGraph } from "../view/index.js";
@@ -57,6 +60,7 @@ export class LineageViewerElement extends ElementBase {
   private selectedId: string | null = null;
   private selectedFieldRef: FieldReference | null = null;
   private searchOptions: LineageSearchOptions | null = null;
+  private fieldSearchKeyword: string | null = null;
   private currentSearchResults: readonly LineageSearchResult[] = [];
   private initialized = false;
   private readyDispatched = false;
@@ -166,6 +170,10 @@ export class LineageViewerElement extends ElementBase {
     const node = this.findSceneNode(nodeId);
     if (node) this.viewport?.focus({ x: node.x + node.width / 2, y: node.y + node.height / 2 });
   }
+  focusField(nodeId: string, fieldId: string): void {
+    const reference = { nodeId: nodeId.trim(), fieldId: fieldId.trim() };
+    if (this.findField(reference) !== null) this.focusNode(reference.nodeId);
+  }
   zoomBy(factor: number): void {
     const size = this.size();
     this.viewport?.zoom({ x: size.width / 2, y: size.height / 2 }, factor);
@@ -189,13 +197,35 @@ export class LineageViewerElement extends ElementBase {
     filter: LineageSearchFilter = {},
   ): readonly LineageSearchResult[] {
     if (this.state === "destroyed") return [];
+    this.fieldSearchKeyword = null;
     this.searchOptions = normalizeSearchOptions(queryOrOptions, filter);
     this.refreshSearch();
     return this.searchResults;
   }
-  clearSearch(): void {
-    if (this.state === "destroyed" || this.searchOptions === null) return;
+  searchFields(keyword: string): readonly LineageFieldLocation[] {
+    if (this.state === "destroyed") return [];
+    const normalized = keyword.trim();
     this.searchOptions = null;
+    this.fieldSearchKeyword = normalized === "" ? null : normalized;
+    const results = searchFieldLocations(this.graph, normalized);
+    this.currentSearchResults = results.map(({ nodeId, fieldId }) => ({
+      kind: "field",
+      nodeId,
+      fieldId,
+    }));
+    this.applySearchState();
+    const first = results[0];
+    if (first !== undefined) this.focusField(first.nodeId, first.fieldId);
+    return results.map((result) => ({ ...result }));
+  }
+  clearSearch(): void {
+    if (
+      this.state === "destroyed" ||
+      (this.searchOptions === null && this.fieldSearchKeyword === null)
+    )
+      return;
+    this.searchOptions = null;
+    this.fieldSearchKeyword = null;
     this.currentSearchResults = [];
     this.applySearchState();
   }
@@ -213,6 +243,7 @@ export class LineageViewerElement extends ElementBase {
     this.selectedId = null;
     this.selectedFieldRef = null;
     this.searchOptions = null;
+    this.fieldSearchKeyword = null;
     this.currentSearchResults = [];
     this.diagnostics = [];
     this.state = "destroyed";
@@ -319,7 +350,14 @@ export class LineageViewerElement extends ElementBase {
     );
   }
   private refreshSearch(): void {
-    this.currentSearchResults = searchLineageGraph(this.graph, this.searchOptions);
+    this.currentSearchResults =
+      this.fieldSearchKeyword === null
+        ? searchLineageGraph(this.graph, this.searchOptions)
+        : searchFieldLocations(this.graph, this.fieldSearchKeyword).map(({ nodeId, fieldId }) => ({
+            kind: "field",
+            nodeId,
+            fieldId,
+          }));
     this.applySearchState();
   }
   private applySearchState(): void {
@@ -328,7 +366,7 @@ export class LineageViewerElement extends ElementBase {
         this.graph,
         this.viewGraph,
         this.currentSearchResults,
-        this.searchOptions !== null,
+        this.searchOptions !== null || this.fieldSearchKeyword !== null,
       ),
     );
   }
@@ -447,6 +485,16 @@ export class LineageViewerElement extends ElementBase {
       this.suppressClick = false;
       return;
     }
+    const edgeTarget =
+      event.target instanceof Element
+        ? event.target.closest<SVGPathElement>("[data-edge-key]")
+        : null;
+    const edgeKey = edgeTarget?.dataset["edgeKey"];
+    if (edgeKey !== undefined) {
+      const edge = this.viewGraph?.edges.find((candidate) => candidate.key === edgeKey);
+      if (edge !== undefined) this.emitEdgeClick(edge);
+      return;
+    }
     const fieldTarget =
       event.target instanceof Element ? event.target.closest<SVGGElement>(".field-row") : null;
     const target =
@@ -484,6 +532,45 @@ export class LineageViewerElement extends ElementBase {
       this.updateSelection(id, "pointer");
     } else this.updateSelection(null, "pointer");
   };
+  private emitEdgeClick(edge: NormalizedLineageGraph["edges"][number]): void {
+    const sourceField = this.findField({
+      nodeId: edge.source,
+      fieldId: edge.sourceField ?? "",
+    })?.field;
+    const targetField = this.findField({
+      nodeId: edge.target,
+      fieldId: edge.targetField ?? "",
+    })?.field;
+    const detail: LineageEdgeClickEventDetail = {
+      edgeKey: edge.key,
+      edge: toPublicEdge(edge),
+      source: {
+        nodeId: edge.source,
+        fieldId: edge.sourceField ?? null,
+        label:
+          edge.sourceField === undefined
+            ? edge.source
+            : `${edge.source}.${sourceField?.label ?? edge.sourceField}`,
+      },
+      target: {
+        nodeId: edge.target,
+        fieldId: edge.targetField ?? null,
+        label:
+          edge.targetField === undefined
+            ? edge.target
+            : `${edge.target}.${targetField?.label ?? edge.targetField}`,
+      },
+      transformType: edge.transformType ?? null,
+      expression: edge.expression ?? null,
+    };
+    this.dispatchEvent(
+      new CustomEvent<LineageEdgeClickEventDetail>("lineage-edge-click", {
+        detail,
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
   private eventPoint(event: MouseEvent): { x: number; y: number } {
     const rect = this.renderer?.svg.getBoundingClientRect();
     const size = this.size();

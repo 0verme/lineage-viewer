@@ -59,12 +59,14 @@ Changing the mode rebuilds visible adjacency, cycle groups, layout, and interact
 | `fitBounds(bounds, options?)`  | Fits an arbitrary scene rectangle.                                    |
 | `fitNodes(nodeIds, options?)`  | Fits existing nodes.                                                  |
 | `focusNode(nodeId)`            | Centers an existing node.                                             |
+| `focusField(nodeId, fieldId)`  | Centers the table containing an existing field.                       |
 | `zoomBy(factor)`               | Zooms around the viewport center.                                     |
 | `selectNode(nodeId)`           | Selects an existing table node.                                       |
 | `selectField(nodeId, fieldId)` | Selects an existing visible field. No-op in `table` mode.             |
 | `clearSelection()`             | Clears node or field selection.                                       |
 | `search(query, filter?)`       | Searches table/field IDs and labels, optionally filtering `dataType`. |
 | `search(options)`              | Searches with `{ query?, dataType? }`.                                |
+| `searchFields(keyword)`        | Finds fields by field/table/type and focuses the first result.        |
 | `clearSearch()`                | Clears search highlighting and results.                               |
 | `destroy()`                    | Idempotently disables the instance and releases resources.            |
 
@@ -74,8 +76,13 @@ Search is case-insensitive. Name matching is substring-based; `dataType` filteri
 viewer.search("customer");
 viewer.search("", { dataType: "bigint" });
 viewer.search({ query: "amount", dataType: "decimal(18,2)" });
+const fields = viewer.searchFields("decimal");
 viewer.clearSearch();
 ```
+
+`searchFields()` returns stable `{ nodeId, fieldId, label }` snapshots. A table-name match
+returns its fields, and the first result is positioned in the viewport. Use `focusField()` to
+position any other result.
 
 ## Events
 
@@ -87,6 +94,7 @@ All events are bubbling, composed, non-cancelable `CustomEvent`s.
 | `lineage-error` / `lineage-warning` | `{ diagnostics, hasErrors }`                                                                            |
 | `lineage-node-click`                | `{ nodeId, node }`                                                                                      |
 | `lineage-field-click`               | `{ nodeId, fieldId, node, field }`                                                                      |
+| `lineage-edge-click`                | `{ edgeKey, edge, source, target, transformType, expression }`                                          |
 | `lineage-selection-change`          | `{ selectedNodeId, previousSelectedNodeId, selectedField, previousSelectedField, node, field, source }` |
 
 ## Styling boundary

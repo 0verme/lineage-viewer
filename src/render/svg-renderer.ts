@@ -47,6 +47,7 @@ export class SvgRenderer {
   render(scene: RenderScene, options: ResolvedLineageViewerOptions): void {
     if (this.destroyed) return;
     this.clear();
+    this.svg.setAttribute("data-view-mode", options.viewMode);
     const edges = createSvgElement("g");
     edges.setAttribute("class", "edges");
     const nodes = createSvgElement("g");

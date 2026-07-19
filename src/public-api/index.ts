@@ -9,4 +9,4 @@ export type {
   LineageViewerEventDetailMap,
 } from "./events.js";
 export { defaultLineageViewerOptions, resolveOptions } from "./options.js";
-export type { LineageViewerOptions } from "./options.js";
+export type { LineageViewerOptions, LineageViewMode } from "./options.js";

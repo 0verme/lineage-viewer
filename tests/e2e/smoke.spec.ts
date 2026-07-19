@@ -213,3 +213,74 @@ test("selects a field and highlights its complete column lineage", async ({ page
     ),
   ).toEqual({ nodeId: "b", fieldId: "id" });
 });
+
+test("switches between mixed, table, and column view modes", async ({ page }) => {
+  await page.goto("/examples/vanilla/");
+  const viewer = page.locator("lineage-viewer");
+  await viewer.evaluate((element) => {
+    (element as HTMLElement).style.height = "480px";
+    (
+      element as unknown as {
+        setData(data: unknown): void;
+      }
+    ).setData({
+      nodes: [
+        { id: "a", label: "A", fields: [{ id: "id" }, { id: "name" }] },
+        { id: "b", label: "B", fields: [{ id: "id" }, { id: "name" }] },
+      ],
+      edges: [
+        { source: "a", target: "b", sourceField: "id", targetField: "id" },
+        { source: "a", target: "b", sourceField: "name", targetField: "name" },
+        { source: "a", target: "b", label: "table dependency" },
+      ],
+    });
+  });
+  await expect(viewer.locator("svg")).toHaveAttribute("data-view-mode", "mixed");
+  await expect(viewer.locator(".field-row")).toHaveCount(4);
+  await expect(viewer.locator(".column-edge")).toHaveCount(2);
+  await expect(viewer.locator(".table-edge")).toHaveCount(1);
+
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        selectField(nodeId: string, fieldId: string): void;
+        setOptions(options: unknown): void;
+      }
+    ).selectField("a", "id");
+  });
+  await expect(viewer.locator('.field-row[data-field-id="id"][data-selected]')).toHaveCount(1);
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        setOptions(options: unknown): void;
+      }
+    ).setOptions({ viewMode: "table" });
+  });
+  await expect(viewer.locator("svg")).toHaveAttribute("data-view-mode", "table");
+  await expect(viewer.locator(".field-row")).toHaveCount(0);
+  await expect(viewer.locator(".column-edge")).toHaveCount(0);
+  await expect(viewer.locator(".table-edge")).toHaveCount(1);
+  await expect(viewer.locator(".node-surface").first()).toHaveAttribute("height", "72");
+  expect(
+    await viewer.evaluate(
+      (element) =>
+        (
+          element as unknown as {
+            selectedField: unknown;
+          }
+        ).selectedField,
+    ),
+  ).toBeNull();
+
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        setOptions(options: unknown): void;
+      }
+    ).setOptions({ viewMode: "column" });
+  });
+  await expect(viewer.locator("svg")).toHaveAttribute("data-view-mode", "column");
+  await expect(viewer.locator(".field-row")).toHaveCount(4);
+  await expect(viewer.locator(".column-edge")).toHaveCount(2);
+  await expect(viewer.locator(".table-edge")).toHaveCount(0);
+});

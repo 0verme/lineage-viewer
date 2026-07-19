@@ -26,6 +26,7 @@ import type {
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,
 } from "../public-api/events.js";
+import { createLineageViewGraph } from "../view/index.js";
 import { lineageViewerStyles } from "./styles.js";
 import type { LineageViewerState } from "./element-state.js";
 
@@ -38,6 +39,7 @@ export class LineageViewerElement extends ElementBase {
   private resizeObserver: ResizeObserver | null = null;
   private state: LineageViewerState = "idle";
   private graph: NormalizedLineageGraph | null = null;
+  private viewGraph: NormalizedLineageGraph | null = null;
   private scene: RenderScene | null = null;
   private diagnostics: readonly LineageDiagnostic[] = [];
   private input: unknown = null;
@@ -107,8 +109,11 @@ export class LineageViewerElement extends ElementBase {
       previous.nodeHeight !== this.resolvedOptions.nodeHeight ||
       previous.layerGap !== this.resolvedOptions.layerGap ||
       previous.nodeGap !== this.resolvedOptions.nodeGap;
+    const viewModeChanged = previous.viewMode !== this.resolvedOptions.viewMode;
+    if (viewModeChanged && this.resolvedOptions.viewMode === "table")
+      this.updateFieldSelection(null, "api");
     if (normalizationChanged) this.process(true);
-    else if (layoutChanged && this.initialized) this.renderCurrent(true);
+    else if ((layoutChanged || viewModeChanged) && this.initialized) this.renderCurrent(true);
     else if (
       previous.fitOnLoad !== this.resolvedOptions.fitOnLoad &&
       this.resolvedOptions.fitOnLoad &&
@@ -153,6 +158,7 @@ export class LineageViewerElement extends ElementBase {
     if (this.graph?.nodeById.has(id)) this.updateSelection(id, "api");
   }
   selectField(nodeId: string, fieldId: string): void {
+    if (this.resolvedOptions.viewMode === "table") return;
     const reference = { nodeId: nodeId.trim(), fieldId: fieldId.trim() };
     if (this.findField(reference) !== null) this.updateFieldSelection(reference, "api");
   }
@@ -168,6 +174,7 @@ export class LineageViewerElement extends ElementBase {
     this.viewport = null;
     this.root.replaceChildren();
     this.graph = null;
+    this.viewGraph = null;
     this.scene = null;
     this.selectedId = null;
     this.selectedFieldRef = null;
@@ -228,8 +235,10 @@ export class LineageViewerElement extends ElementBase {
     this.renderer.clear();
     this.root.querySelector(".state")?.remove();
     this.scene = null;
+    this.viewGraph = null;
     if (this.state === "rendered" && this.graph !== null) {
-      this.scene = createLayeredRenderScene(this.graph, this.resolvedOptions);
+      this.viewGraph = createLineageViewGraph(this.graph, this.resolvedOptions.viewMode);
+      this.scene = createLayeredRenderScene(this.viewGraph, this.resolvedOptions);
       this.renderer.render(this.scene, this.resolvedOptions);
       const size = this.size();
       this.renderer.setViewportSize(size.width, size.height);
@@ -263,7 +272,7 @@ export class LineageViewerElement extends ElementBase {
   private applyInteractionState(): void {
     this.renderer?.setInteractionState(
       calculateInteractionState(
-        this.graph,
+        this.viewGraph,
         this.selectedId,
         this.resolvedOptions.highlightMode,
         this.selectedFieldRef,

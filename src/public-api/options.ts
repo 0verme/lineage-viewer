@@ -1,5 +1,7 @@
 import type { ValidationMode } from "../schema/types.js";
 
+export type LineageViewMode = "table" | "column" | "mixed";
+
 export interface LineageViewerOptions {
   direction?: "LR" | "RL" | "TB" | "BT";
   fitOnLoad?: boolean;
@@ -12,6 +14,7 @@ export interface LineageViewerOptions {
   layerGap?: number;
   nodeGap?: number;
   highlightMode?: "connected" | "both" | "upstream" | "downstream" | "none";
+  viewMode?: LineageViewMode;
 }
 
 export interface ResolvedLineageViewerOptions {
@@ -26,6 +29,7 @@ export interface ResolvedLineageViewerOptions {
   readonly layerGap: number;
   readonly nodeGap: number;
   readonly highlightMode: "connected" | "both" | "upstream" | "downstream" | "none";
+  readonly viewMode: LineageViewMode;
 }
 
 export const defaultLineageViewerOptions: ResolvedLineageViewerOptions = {
@@ -40,6 +44,7 @@ export const defaultLineageViewerOptions: ResolvedLineageViewerOptions = {
   layerGap: 72,
   nodeGap: 32,
   highlightMode: "connected",
+  viewMode: "mixed",
 };
 
 export function resolveOptions(
@@ -71,6 +76,7 @@ export function resolveOptions(
     highlightMode: isHighlightMode(values["highlightMode"])
       ? values["highlightMode"]
       : current.highlightMode,
+    viewMode: isViewMode(values["viewMode"]) ? values["viewMode"] : current.viewMode,
   };
 }
 
@@ -88,4 +94,7 @@ function isHighlightMode(value: unknown): value is ResolvedLineageViewerOptions[
     value === "downstream" ||
     value === "none"
   );
+}
+function isViewMode(value: unknown): value is LineageViewMode {
+  return value === "table" || value === "column" || value === "mixed";
 }

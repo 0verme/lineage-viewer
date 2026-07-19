@@ -19,6 +19,7 @@ export type {
   LineageViewerEventName,
   LineageViewerEventDetailMap,
   LineageViewerOptions,
+  LineageViewMode,
 } from "./public-api/index.js";
 
 export type {

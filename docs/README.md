@@ -7,6 +7,7 @@
 - [产品定位（英文文档）](./product-scope.md)：边界、目标与非目标。
 - [快速开始](../README.md#快速开始)：安装状态、组件注册与最小示例。
 - [数据格式（英文文档）](./data-schema.md)：Schema、字段与诊断。
+- [字段级血缘（英文文档）](./column-lineage.md)：字段模型、视图模式、交互、搜索与示例。
 - [公共 API（英文文档）](./public-api.md)：properties、方法、事件和样式边界。
 
 ## 实现机制
@@ -18,6 +19,7 @@
 ## 演示与发布
 
 - [Demo Gallery（英文文档）](./demo-gallery.md)：示例场景、稳定 URL 与语言行为。
+- [字段级示例](../examples/column-basic/)：基础映射、转换表达式与混合模式。
 - [JSON Playground（英文文档）](./json-playground.md)：浏览器内本地 JSON 预览。
 - [发布准备（英文文档）](./release-readiness.md)：发版前检查清单。
 - [发布流程（英文文档）](./releasing.md)：发布与部署流程。

@@ -1,9 +1,27 @@
 # Interactions
 
-The SVG scene is placed inside a viewport group with a `translate(x y) scale(s)` transform. Mouse-wheel zoom is anchored at the pointer and primary-button pointer dragging pans the background. The scale is internally clamped to 0.1–4 with 24px fit padding.
+The SVG scene lives inside a viewport group with a `translate(x y) scale(s)` transform. Wheel zoom is pointer-anchored, primary-button background dragging pans, and scale is clamped to 0.1–4. `fitView`, `fitBounds`, `fitNodes`, `resetView`, `focusNode`, and `zoomBy` provide programmatic viewport control.
 
-`fitView()` fits immediately. A scene baseline is captured on scene creation: fitted with `fitOnLoad`, otherwise identity. `resetView()` restores that baseline; a manual fit does not replace it. ResizeObserver refits only before user pan, zoom, or focus. After interaction it retains scale and preserves the scene coordinate at the viewport center where possible.
+## Node and field selection
 
-Clicking a node emits `lineage-node-click`, then selects it and emits `lineage-selection-change` if selection changed. Clicking background clears selection; drag completion suppresses that click. Selection uses one ID only. Data updates retain a selected node when it remains in the graph and clear it when it does not.
+Clicking a node emits `lineage-node-click`, selects it, and then emits `lineage-selection-change` when state changes. Clicking a field row takes precedence over its owning node, emits `lineage-field-click`, and selects `{ nodeId, fieldId }`. Clicking the background clears either selection.
 
-`highlightMode` calculates state from normalized graph traversal: `upstream`, `downstream`, and `connected` highlight recursive related nodes and induced edges while dimming unrelated content. `none` displays only the selection state. There is no node drag, multi-select, keyboard navigation, search, minimap, pinch zoom, or export in this phase.
+Node selection uses table-level adjacency. Field selection uses an independent column-edge index and iterative breadth-first traversal. The visited set prevents cycles from causing repeated work or infinite traversal.
+
+`highlightMode` supports:
+
+- `upstream`: recursive incoming lineage
+- `downstream`: recursive outgoing lineage
+- `both`: both directions
+- `connected`: compatibility alias for `both` on fields
+- `none`: selection only
+
+Related fields, edges, and owning nodes are highlighted; unrelated content is dimmed.
+
+## Search
+
+`search()` matches table/field IDs and labels without case sensitivity. A `dataType` filter is an exact case-insensitive field filter. Search highlighting is separate from selection, so searching does not discard the current selection.
+
+In `table` mode, a matching field highlights its owning table even though field rows are hidden. In `column` and `mixed` modes, matching rows are also marked. `clearSearch()` removes all search attributes and results.
+
+There is no node drag, edge editing, multi-select, keyboard navigation, minimap, pinch zoom, or export.

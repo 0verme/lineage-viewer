@@ -24,7 +24,8 @@ The production demo is [lineage.overme.cn](https://lineage.overme.cn). The site 
 
 - TypeScript, native browser APIs, ESM, Web Components, Shadow DOM, and SVG.
 - JSON validation, normalization, stable diagnostics, and strict/lenient modes.
-- Duplicate node/edge, self-loop, and missing source/target handling; upstream/downstream/connected highlights.
+- Table, column, and mixed lineage with field-level transforms and recursive path highlighting.
+- Table/field name search, data-type filtering, and strict/lenient validation.
 - Deterministic layered layout in `LR`, `RL`, `TB`, and `BT`; zoom, pan, fit, reset, focus, and selection.
 - A static Demo Gallery, JSON Playground, minimal vanilla/React/Vue examples, and host-consumable events.
 
@@ -100,21 +101,67 @@ Set graph input using `data` or `setData()`. Mutations to an already assigned ob
 
 See [data schema and diagnostics](docs/data-schema.md) for all fields, diagnostic codes, and validation rules.
 
+## Column lineage
+
+Fields are rows inside table nodes. Add `fields` to nodes and pair `sourceField` with `targetField` on a column edge:
+
+```ts
+viewer.data = {
+  nodes: [
+    {
+      id: "raw_orders",
+      label: "RAW_ORDERS",
+      fields: [{ id: "amount_cents", dataType: "bigint" }],
+    },
+    {
+      id: "fct_orders",
+      label: "FCT_ORDERS",
+      fields: [{ id: "amount_usd", dataType: "decimal(18,2)" }],
+    },
+  ],
+  edges: [
+    {
+      source: "raw_orders",
+      target: "fct_orders",
+      sourceField: "amount_cents",
+      targetField: "amount_usd",
+      transformType: "transform",
+      expression: "amount_cents / 100.0",
+    },
+  ],
+};
+viewer.options = { viewMode: "column", highlightMode: "both" };
+```
+
+Use `table`, `column`, or `mixed` view mode; `mixed` is the default. Search by table/field name or filter fields by data type:
+
+```ts
+viewer.search("amount");
+viewer.search("", { dataType: "bigint" });
+viewer.clearSearch();
+```
+
+See the [column lineage guide](docs/column-lineage.md) and runnable examples:
+
+- [`examples/column-basic/`](examples/column-basic/)
+- [`examples/column-transform/`](examples/column-transform/)
+- [`examples/mixed-lineage/`](examples/mixed-lineage/)
+
 ## Web Component properties
 
-All inputs are JavaScript properties; no HTML attributes are observed or synchronized. Reading `options` returns a resolved read-only snapshot; setting it accepts a partial options patch. Defaults are `direction: "LR"`, `fitOnLoad: true`, `readonly: true`, `showSelfLoops: false`, `showEdgeLabels: false`, `validationMode: "lenient"`, `nodeWidth: 180`, `nodeHeight: 72`, `layerGap: 72`, `nodeGap: 32`, and `highlightMode: "connected"`. `selectedNodeId` is read-only.
+All inputs are JavaScript properties; no HTML attributes are observed or synchronized. Reading `options` returns a resolved read-only snapshot; setting it accepts a partial options patch. Defaults include `direction: "LR"`, `validationMode: "lenient"`, `highlightMode: "connected"`, and `viewMode: "mixed"`. `selectedNodeId`, `selectedField`, and `searchResults` are read-only.
 
 ## JavaScript API
 
-The public API is `setData(data)`, `setOptions(options)`, `getDiagnostics()`, `fitView()`, `resetView()`, `focusNode(nodeId)`, `selectNode(nodeId)`, `clearSelection()`, and `destroy()`. `focusNode` and `selectNode` ignore unknown nodes. `destroy()` is idempotent and permanently disables the instance. See the [public API](docs/public-api.md).
+The public API includes data/options, viewport controls, node/field selection, `search()`, `clearSearch()`, and `destroy()`. Unknown node or field IDs are ignored. See the [public API](docs/public-api.md).
 
 ## Events
 
-The component dispatches bubbling, composed `CustomEvent`s: `lineage-ready`, `lineage-error`, `lineage-warning`, `lineage-node-click`, and `lineage-selection-change`. See [public API](docs/public-api.md) for detail shapes.
+The component dispatches bubbling, composed `CustomEvent`s including `lineage-node-click`, `lineage-field-click`, and `lineage-selection-change`. See [public API](docs/public-api.md) for all events and detail shapes.
 
 ## Highlighting and interaction
 
-Mouse-wheel zoom is anchored at the pointer; drag blank canvas to pan. Clicking a node selects it and emits events; clicking blank canvas clears selection. `highlightMode` accepts `connected`, `upstream`, `downstream`, or `none`. Use `fitView()`, `resetView()`, and `focusNode()` for viewport control.
+Mouse-wheel zoom is anchored at the pointer; drag blank canvas to pan. Clicking a node or field selects it and emits events; clicking blank canvas clears selection. `highlightMode` accepts `connected`, `both`, `upstream`, `downstream`, or `none`.
 
 ## Strict and lenient modes
 
@@ -178,7 +225,7 @@ Package consumption and public API freeze foundations are complete. Direct integ
 
 ## Known limitations
 
-Layout uses fixed node dimensions and does not measure text, avoid obstacles, add dummy nodes for long edges, provide complete orthogonal routing, or guarantee minimum crossings. Cyclic SCCs use a deterministic same-layer mini-stack. `readonly` is currently stored but has no distinct interaction behavior. Internal Shadow DOM classes, SVG structure, and generated IDs are not compatibility guarantees.
+Layout uses a fixed node width and field-row height and does not measure text, avoid obstacles, add dummy nodes for long edges, provide complete orthogonal routing, or guarantee minimum crossings. Cyclic SCCs use a deterministic same-layer mini-stack. `readonly` is currently stored but has no distinct interaction behavior. Internal Shadow DOM classes, SVG structure, and generated IDs are not compatibility guarantees.
 
 ## Contributing
 

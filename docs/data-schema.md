@@ -1,6 +1,6 @@
 # Data schema and diagnostics
 
-This is the schema version `1.0` contract. These TypeScript declarations are implemented as the package's shared data types; no visual rendering is implemented.
+The schema remains version `1.0` and supports table-level, column-level, and mixed lineage. A field is a row inside a graph node, not an independent graph node.
 
 ```ts
 export interface LineageGraphData {
@@ -16,43 +16,83 @@ export interface LineageNode {
   layer?: string;
   subtitle?: string;
   status?: "default" | "success" | "warning" | "error" | "muted";
+  fields?: LineageField[];
   metadata?: Record<string, unknown>;
+}
+
+export interface LineageField {
+  id: string;
+  label?: string;
+  dataType?: string;
+  description?: string;
 }
 
 export interface LineageEdge {
   id?: string;
   source: string;
   target: string;
+  sourceField?: string;
+  targetField?: string;
   label?: string;
   type?: "lineage" | "dependency" | "reference" | "custom";
+  transformType?: "passthrough" | "rename" | "transform" | "aggregate" | "unknown";
+  expression?: string;
   metadata?: Record<string, unknown>;
 }
-
-export interface LineageDiagnostic {
-  level: "error" | "warning" | "info";
-  code: string;
-  message: string;
-  nodeId?: string;
-  edgeId?: string;
-}
-
-export type ValidationMode = "strict" | "lenient";
 ```
 
-## Rules
+## Column lineage
 
-- `node.id` is unique across the graph; `source` and `target` must reference existing nodes.
-- Node and edge array order must not affect the eventual layout.
-- `label` is treated as plain text, never HTML. `metadata` does not affect default layout.
-- Future schema changes use `schemaVersion`. In lenient mode, unknown extension fields may be retained.
-- Version 1.0 does not introduce ports, handles, groups, node templates, or editable-connection protocols.
+`sourceField` and `targetField` must either both be present or both be absent. When present, each ID must exist in the corresponding source or target node. Multiple mappings between the same table pair are retained when their field endpoints differ.
 
-## Diagnostics and validation
+```json
+{
+  "nodes": [
+    {
+      "id": "raw_orders",
+      "label": "RAW_ORDERS",
+      "fields": [{ "id": "amount_cents", "dataType": "bigint" }]
+    },
+    {
+      "id": "fct_orders",
+      "label": "FCT_ORDERS",
+      "fields": [{ "id": "amount_usd", "dataType": "decimal(18,2)" }]
+    }
+  ],
+  "edges": [
+    {
+      "source": "raw_orders",
+      "target": "fct_orders",
+      "sourceField": "amount_cents",
+      "targetField": "amount_usd",
+      "transformType": "transform",
+      "expression": "amount_cents / 100.0"
+    }
+  ]
+}
+```
 
-Planned diagnostic codes are `INVALID_GRAPH_DATA`, `DUPLICATE_NODE_ID`, `DUPLICATE_EDGE`, `MISSING_EDGE_SOURCE`, `MISSING_EDGE_TARGET`, `SELF_LOOP_HIDDEN`, `CYCLE_DETECTED`, and `EMPTY_GRAPH`.
+Field order is preserved for rendering. Field IDs are trimmed and must be unique within their owning node. Optional field attributes must be strings when provided.
 
-`validationMode` defaults to `"lenient"`. Strict mode returns no normalized graph when any error is present. Lenient mode skips invalid nodes and edges where possible, returns the remaining normalized graph, and retains every diagnostic. Root-shape errors and unsupported schema versions are unrecoverable in both modes.
+## Validation modes
 
-Duplicate node IDs are errors: the first valid occurrence wins in lenient mode. Duplicate edges are warnings and use the canonical key `source + target + normalized type + normalized label`; the first valid occurrence wins in both modes. Metadata and edge IDs do not affect this key.
+`validationMode` defaults to `"lenient"`. Strict mode returns no normalized graph when an error exists. Lenient mode skips invalid nodes, fields, or edges where possible and retains valid siblings.
 
-Self-loops are hidden by default and emit `SELF_LOOP_HIDDEN`; `showSelfLoops: true` preserves them. Cycles are preserved and emit one `CYCLE_DETECTED` warning per stable strongly connected component. An empty normalized graph emits `EMPTY_GRAPH` at info level. Diagnostics use stable ordering by level, code, node ID, edge ID, then message. Valid input permutations produce the same normalized nodes, edges, indexes, cycle groups, and diagnostics.
+Duplicate nodes retain the first valid occurrence in lenient mode. Duplicate fields retain the first valid field. Duplicate edges use a canonical key that includes field endpoints, so only an identical column mapping is removed. Self-loops are hidden unless `showSelfLoops` is enabled. Cycles are preserved and reported.
+
+Diagnostic codes are:
+
+- `INVALID_GRAPH_DATA`
+- `DUPLICATE_NODE_ID`
+- `DUPLICATE_FIELD_ID`
+- `DUPLICATE_EDGE`
+- `MISSING_EDGE_SOURCE`
+- `MISSING_EDGE_TARGET`
+- `UNPAIRED_FIELD_REFERENCE`
+- `MISSING_SOURCE_FIELD`
+- `MISSING_TARGET_FIELD`
+- `SELF_LOOP_HIDDEN`
+- `CYCLE_DETECTED`
+- `EMPTY_GRAPH`
+
+Diagnostics use stable ordering by level, code, node ID, edge ID, then message.

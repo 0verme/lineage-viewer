@@ -1,5 +1,51 @@
 # lineage-viewer
 
+## 字段级血缘
+
+lineage-viewer 现已支持表级、字段级和混合血缘，同时保持旧版仅含 `nodes` / `edges` 的 JSON 兼容。
+
+- 字段作为表节点内部行，通过 `fields` 定义；字段不是独立图节点。
+- 字段边通过成对的 `sourceField` / `targetField` 连接，可附带 `transformType` 和 `expression`。
+- `viewMode` 支持 `table`、`column`、`mixed`，默认值为 `mixed`。
+- 点击字段可按 `upstream`、`downstream` 或 `both` 高亮完整路径。
+- `search()` 支持表名、字段名搜索和 `dataType` 过滤。
+
+```ts
+viewer.data = {
+  nodes: [
+    {
+      id: "raw_orders",
+      label: "RAW_ORDERS",
+      fields: [{ id: "amount_cents", dataType: "bigint" }],
+    },
+    {
+      id: "fct_orders",
+      label: "FCT_ORDERS",
+      fields: [{ id: "amount_usd", dataType: "decimal(18,2)" }],
+    },
+  ],
+  edges: [
+    {
+      source: "raw_orders",
+      target: "fct_orders",
+      sourceField: "amount_cents",
+      targetField: "amount_usd",
+      transformType: "transform",
+      expression: "amount_cents / 100.0",
+    },
+  ],
+};
+
+viewer.options = { viewMode: "column", highlightMode: "both" };
+viewer.search("", { dataType: "bigint" });
+```
+
+完整说明见[字段级血缘指南](docs/column-lineage.md)和[公共 API](docs/public-api.md)。可运行示例：
+
+- [`examples/column-basic/`](examples/column-basic/)
+- [`examples/column-transform/`](examples/column-transform/)
+- [`examples/mixed-lineage/`](examples/mixed-lineage/)
+
 简体中文 | [English](./README.en.md)
 
 一个轻量、框架无关、可嵌入的数据血缘图查看器。

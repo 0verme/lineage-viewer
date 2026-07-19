@@ -20,6 +20,16 @@ Run `npm run build:site` to produce `site-dist/`, then `npm run preview:site` to
 
 Run `npm run screenshot:gallery` only when intentionally updating `docs/assets/demo-gallery.png`.
 
+## Standalone column lineage examples
+
+The repository also contains three source-level examples that run through the Vite development server:
+
+- `examples/column-basic/` for direct field mappings and recursive selection
+- `examples/column-transform/` for transform metadata and expressions
+- `examples/mixed-lineage/` for view switching, name search, and data-type filtering
+
+These examples are intentionally separate from the hosted Gallery registry and use synthetic data only.
+
 ## Phase 7 boundary
 
 The Gallery does not edit, parse, import, persist, or encode user JSON. Phase 7 can reuse the registry while keeping editor state separate from the most recently successful render, preserving the prior graph on parse errors and separating parse errors from schema diagnostics.

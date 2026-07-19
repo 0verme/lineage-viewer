@@ -63,3 +63,21 @@ test("sqlglot adapter demo renders generated aggregate field lineage", async ({ 
   ]);
   await expect(page.locator(".status")).toContainText("2 field mappings generated from SQL");
 });
+
+test("openlineage adapter demo renders job, datasets, and column lineage", async ({ page }) => {
+  await page.goto("/examples/openlineage-adapter/");
+  const viewer = page.locator("lineage-viewer");
+  await expect(page).toHaveTitle("OpenLineage Adapter example");
+  await expect(page.locator("[data-event]")).toContainText('"eventType": "COMPLETE"');
+  await expect(viewer.locator(".node")).toHaveCount(3);
+  await expect(viewer.locator(".field-row")).toHaveCount(4);
+  await expect(viewer.locator(".table-edge")).toHaveCount(2);
+  await expect(viewer.locator(".column-edge")).toHaveCount(2);
+  expect((await viewer.locator(".edge-label").allTextContents()).sort()).toEqual([
+    "aggregate",
+    "reads",
+    "rename",
+    "writes",
+  ]);
+  await expect(page.locator(".status")).toContainText("4 edges generated from one RunEvent");
+});

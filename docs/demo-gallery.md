@@ -23,13 +23,15 @@ Run `npm run screenshot:gallery` only when intentionally updating
 
 ## Standalone column lineage examples
 
-The repository also contains three source-level examples that run through the Vite development server:
+The repository also contains source-level examples that run through the Vite development server:
 
 - `examples/column-basic/` for direct field mappings and recursive selection
 - `examples/column-transform/` for transform metadata and expressions
 - `examples/mixed-lineage/` for view switching, name search, and data-type filtering
 - `examples/sqlglot-adapter/` for rendering column lineage generated from SQL by the independent
   Python Adapter
+- `examples/openlineage-adapter/` for rendering a job, datasets, and column lineage generated from
+  an OpenLineage RunEvent
 
 These examples are intentionally separate from the hosted Gallery registry and use synthetic data only.
 

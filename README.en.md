@@ -49,6 +49,8 @@ It does not parse SQL, discover lineage, or store metadata. Those concerns can b
 
 The optional [SQLGlot Adapter](docs/sqlglot-adapter.md) converts `SELECT`, `JOIN`, aliases, and
 aggregates into Viewer JSON from Python without adding SQL parsing to the Web Component.
+The dependency-free [OpenLineage Adapter](docs/openlineage-adapter.md) converts RunEvent jobs,
+datasets, schemas, and column lineage facets into the same Viewer schema.
 
 ## Quick start
 
@@ -202,6 +204,8 @@ See the [column lineage guide](docs/column-lineage.md) and runnable examples:
 - [`examples/column-transform/`](examples/column-transform/)
 - [`examples/mixed-lineage/`](examples/mixed-lineage/)
 - [`examples/sqlglot-adapter/`](examples/sqlglot-adapter/) — SQL to generated column lineage
+- [`examples/openlineage-adapter/`](examples/openlineage-adapter/) — RunEvent to job, dataset, and
+  column lineage
 
 ## Web Component properties
 

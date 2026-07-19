@@ -20,6 +20,8 @@
 
 - [Demo Gallery（英文文档）](./demo-gallery.md)：示例场景、稳定 URL 与语言行为。
 - [字段级示例](../examples/column-basic/)：基础映射、转换表达式与混合模式。
+- [SQLGlot Adapter（英文文档）](./sqlglot-adapter.md)：从 SQL 生成字段血缘。
+- [OpenLineage Adapter（英文文档）](./openlineage-adapter.md)：从 RunEvent 生成任务、数据集与字段血缘。
 - [JSON Playground（英文文档）](./json-playground.md)：浏览器内本地 JSON 预览。
 - [发布准备（英文文档）](./release-readiness.md)：发版前检查清单。
 - [发布流程（英文文档）](./releasing.md)：发布与部署流程。

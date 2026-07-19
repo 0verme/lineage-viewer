@@ -68,6 +68,8 @@
     "test:release": "vitest run tests/unit/release.test.ts",
     "test:adapter-sqlglot": "python -m unittest discover -s packages/adapter-sqlglot/tests -v",
     "lint:adapter-sqlglot": "python -m ruff check packages/adapter-sqlglot && python -m ruff format --check packages/adapter-sqlglot",
+    "test:adapter-openlineage": "python -m unittest discover -s packages/adapter-openlineage/tests -v",
+    "lint:adapter-openlineage": "python -m ruff check packages/adapter-openlineage && python -m ruff format --check packages/adapter-openlineage",
     "test:workflows": "node scripts/validate-workflows.mjs"
   },
   "devDependencies": {

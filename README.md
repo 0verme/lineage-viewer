@@ -45,7 +45,7 @@ lineage-viewer 专注于：
 - **Embeddable**：标准 Web Component，可用于原生 JavaScript、React、Vue 或 iframe 场景。
 - **Customizable**：Schema 驱动，接收已有的表、任务、数据集或字段血缘 JSON。
 
-它不负责 SQL 解析、自动发现血缘或元数据存储；这些能力通过独立 Adapter 扩展。[SQLGlot Adapter](docs/sqlglot-adapter.md) 已支持将 `SELECT`、`JOIN`、别名和聚合转换为 Viewer JSON，且不会把 SQL 解析依赖引入 Web Component 核心。
+它不负责 SQL 解析、自动发现血缘或元数据存储；这些能力通过独立 Adapter 扩展。[SQLGlot Adapter](docs/sqlglot-adapter.md) 已支持将 `SELECT`、`JOIN`、别名和聚合转换为 Viewer JSON；[OpenLineage Adapter](docs/openlineage-adapter.md) 可将 RunEvent 中的 Job、Dataset 与字段血缘转换为同一格式。两个 Adapter 均不会把解析依赖引入 Web Component 核心。
 
 ## 快速开始
 

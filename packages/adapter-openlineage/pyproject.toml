@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lineage-viewer-adapter-openlineage"
+version = "0.1.0"
+description = "Convert OpenLineage run events into lineage-viewer graph JSON."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "lineage-viewer contributors" }]
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.15.0,<0.16"]
+
+[project.scripts]
+lineage-viewer-openlineage = "lineage_viewer_adapter_openlineage.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

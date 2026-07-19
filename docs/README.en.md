@@ -12,6 +12,8 @@ The repository's primary documentation entry points are the [Simplified Chinese 
 - [Interactions](./interactions.md)
 - [Demo Gallery](./demo-gallery.md)
 - [Runnable column lineage examples](../examples/column-basic/)
+- [SQLGlot Adapter](./sqlglot-adapter.md)
+- [OpenLineage Adapter](./openlineage-adapter.md)
 - [JSON Playground](./json-playground.md)
 - [Release readiness](./release-readiness.md)
 - [Release guide](./releasing.md)

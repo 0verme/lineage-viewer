@@ -10,3 +10,10 @@ export type {
 } from "./events.js";
 export { defaultLineageViewerOptions, resolveOptions } from "./options.js";
 export type { LineageViewerOptions, LineageViewMode } from "./options.js";
+export type {
+  LineageFieldSearchResult,
+  LineageSearchFilter,
+  LineageSearchOptions,
+  LineageSearchResult,
+  LineageTableSearchResult,
+} from "./search.js";

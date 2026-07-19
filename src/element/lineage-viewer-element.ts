@@ -26,6 +26,16 @@ import type {
   LineageReadyEventDetail,
   LineageSelectionChangeEventDetail,
 } from "../public-api/events.js";
+import type {
+  LineageSearchFilter,
+  LineageSearchOptions,
+  LineageSearchResult,
+} from "../public-api/search.js";
+import {
+  calculateSearchState,
+  normalizeSearchOptions,
+  searchLineageGraph,
+} from "../search/index.js";
 import { createLineageViewGraph } from "../view/index.js";
 import { lineageViewerStyles } from "./styles.js";
 import type { LineageViewerState } from "./element-state.js";
@@ -46,6 +56,8 @@ export class LineageViewerElement extends ElementBase {
   private resolvedOptions: ResolvedLineageViewerOptions = defaultLineageViewerOptions;
   private selectedId: string | null = null;
   private selectedFieldRef: FieldReference | null = null;
+  private searchOptions: LineageSearchOptions | null = null;
+  private currentSearchResults: readonly LineageSearchResult[] = [];
   private initialized = false;
   private readyDispatched = false;
   private hasObservedViewport = false;
@@ -80,6 +92,11 @@ export class LineageViewerElement extends ElementBase {
     return this.state === "destroyed" || this.selectedFieldRef === null
       ? null
       : { ...this.selectedFieldRef };
+  }
+  get searchResults(): readonly LineageSearchResult[] {
+    return this.state === "destroyed"
+      ? []
+      : this.currentSearchResults.map((result) => ({ ...result }));
   }
   connectedCallback(): void {
     if (this.state === "destroyed") return;
@@ -165,6 +182,23 @@ export class LineageViewerElement extends ElementBase {
   clearSelection(): void {
     this.updateSelection(null, "api");
   }
+  search(query: string, filter?: LineageSearchFilter): readonly LineageSearchResult[];
+  search(options: LineageSearchOptions): readonly LineageSearchResult[];
+  search(
+    queryOrOptions: string | LineageSearchOptions,
+    filter: LineageSearchFilter = {},
+  ): readonly LineageSearchResult[] {
+    if (this.state === "destroyed") return [];
+    this.searchOptions = normalizeSearchOptions(queryOrOptions, filter);
+    this.refreshSearch();
+    return this.searchResults;
+  }
+  clearSearch(): void {
+    if (this.state === "destroyed" || this.searchOptions === null) return;
+    this.searchOptions = null;
+    this.currentSearchResults = [];
+    this.applySearchState();
+  }
   destroy(): void {
     if (this.state === "destroyed") return;
     this.stopObserving();
@@ -178,6 +212,8 @@ export class LineageViewerElement extends ElementBase {
     this.scene = null;
     this.selectedId = null;
     this.selectedFieldRef = null;
+    this.searchOptions = null;
+    this.currentSearchResults = [];
     this.diagnostics = [];
     this.state = "destroyed";
   }
@@ -207,6 +243,7 @@ export class LineageViewerElement extends ElementBase {
       this.diagnostics = [];
       this.state = "idle";
       this.clearForData();
+      this.refreshSearch();
       this.renderCurrent(true);
       return;
     }
@@ -222,6 +259,7 @@ export class LineageViewerElement extends ElementBase {
       this.updateSelection(null, "data");
     if (this.selectedFieldRef !== null && this.findField(this.selectedFieldRef) === null)
       this.updateFieldSelection(null, "data");
+    this.refreshSearch();
     this.renderCurrent(true);
     if (emitEvents && this.isConnected) this.emitDiagnostics();
     this.dispatchReadyIfPossible();
@@ -245,6 +283,7 @@ export class LineageViewerElement extends ElementBase {
       if (newScene)
         this.viewport?.setScene(bounds(this.scene), size, this.resolvedOptions.fitOnLoad);
       this.applyInteractionState();
+      this.applySearchState();
       return;
     }
     this.viewport?.setScene(null, this.size(), false);
@@ -276,6 +315,20 @@ export class LineageViewerElement extends ElementBase {
         this.selectedId,
         this.resolvedOptions.highlightMode,
         this.selectedFieldRef,
+      ),
+    );
+  }
+  private refreshSearch(): void {
+    this.currentSearchResults = searchLineageGraph(this.graph, this.searchOptions);
+    this.applySearchState();
+  }
+  private applySearchState(): void {
+    this.renderer?.setSearchState(
+      calculateSearchState(
+        this.graph,
+        this.viewGraph,
+        this.currentSearchResults,
+        this.searchOptions !== null,
       ),
     );
   }

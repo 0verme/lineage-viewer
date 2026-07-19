@@ -1,6 +1,7 @@
 import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
 import type { InteractionState } from "../interactions/index.js";
 import { fieldReferenceKey } from "../interactions/index.js";
+import type { SearchState } from "../search/index.js";
 import type { ViewportTransform } from "../interactions/viewport-types.js";
 import { NodeRenderer } from "./node-renderer.js";
 import { createSvgElement } from "./svg-dom.js";
@@ -125,6 +126,25 @@ export class SvgRenderer {
       setFlag(field, "selected", key === state.selectedFieldKey);
       setFlag(field, "highlighted", state.highlightedFieldKeys.has(key));
       setFlag(field, "dimmed", state.dimmedFieldKeys.has(key));
+    }
+  }
+  setSearchState(state: SearchState): void {
+    for (const node of this.sceneGroup.querySelectorAll<SVGGElement>(".node")) {
+      const id = node.dataset["nodeId"];
+      setFlag(node, "search-match", id !== undefined && state.matchedNodeIds.has(id));
+      setFlag(node, "search-dimmed", id !== undefined && state.dimmedNodeIds.has(id));
+    }
+    for (const edge of this.sceneGroup.querySelectorAll<SVGPathElement>(".edge")) {
+      const key = edge.dataset["edgeKey"];
+      setFlag(edge, "search-dimmed", key !== undefined && state.dimmedEdgeKeys.has(key));
+    }
+    for (const field of this.sceneGroup.querySelectorAll<SVGGElement>(".field-row")) {
+      const nodeId = field.closest<SVGGElement>(".node")?.dataset["nodeId"];
+      const fieldId = field.dataset["fieldId"];
+      if (nodeId === undefined || fieldId === undefined) continue;
+      const key = fieldReferenceKey({ nodeId, fieldId });
+      setFlag(field, "search-match", state.matchedFieldKeys.has(key));
+      setFlag(field, "search-dimmed", state.dimmedFieldKeys.has(key));
     }
   }
   destroy(): void {

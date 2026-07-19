@@ -284,3 +284,104 @@ test("switches between mixed, table, and column view modes", async ({ page }) =>
   await expect(viewer.locator(".column-edge")).toHaveCount(2);
   await expect(viewer.locator(".table-edge")).toHaveCount(0);
 });
+
+test("searches table and field names and filters by data type", async ({ page }) => {
+  await page.goto("/examples/vanilla/");
+  const viewer = page.locator("lineage-viewer");
+  await viewer.evaluate((element) => {
+    (element as HTMLElement).style.height = "480px";
+    (
+      element as unknown as {
+        setData(data: unknown): void;
+      }
+    ).setData({
+      nodes: [
+        {
+          id: "orders",
+          label: "Orders",
+          fields: [
+            { id: "customer_id", label: "Customer ID", dataType: "bigint" },
+            { id: "created_at", dataType: "timestamp" },
+          ],
+        },
+        {
+          id: "warehouse",
+          label: "Warehouse",
+          fields: [{ id: "customer_id", dataType: "BIGINT" }],
+        },
+        {
+          id: "audit",
+          label: "Audit Records",
+          fields: [{ id: "payload", dataType: "json" }],
+        },
+      ],
+      edges: [
+        {
+          source: "orders",
+          target: "warehouse",
+          sourceField: "customer_id",
+          targetField: "customer_id",
+        },
+        { source: "warehouse", target: "audit" },
+      ],
+    });
+  });
+  await expect(viewer).toBeVisible();
+
+  const typeResults = await viewer.evaluate((element) =>
+    (
+      element as unknown as {
+        search(query: string, filter: { dataType: string }): unknown;
+      }
+    ).search("", { dataType: "bigint" }),
+  );
+  expect(typeResults).toEqual([
+    { kind: "field", nodeId: "orders", fieldId: "customer_id" },
+    { kind: "field", nodeId: "warehouse", fieldId: "customer_id" },
+  ]);
+  await expect(viewer.locator(".field-row[data-search-match]")).toHaveCount(2);
+  await expect(viewer.locator('.node[data-node-id="audit"]')).toHaveAttribute(
+    "data-search-dimmed",
+    "",
+  );
+  await expect(viewer.locator(".edge[data-search-dimmed]")).toHaveCount(1);
+
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        search(query: string): unknown;
+      }
+    ).search("Audit Records");
+  });
+  await expect(viewer.locator('.node[data-node-id="audit"]')).toHaveAttribute(
+    "data-search-match",
+    "",
+  );
+  await expect(viewer.locator(".field-row[data-search-dimmed]")).toHaveCount(0);
+
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        setOptions(options: unknown): void;
+        search(query: string, filter: { dataType: string }): unknown;
+      }
+    ).setOptions({ viewMode: "table" });
+    (
+      element as unknown as {
+        search(query: string, filter: { dataType: string }): unknown;
+      }
+    ).search("", { dataType: "bigint" });
+  });
+  await expect(viewer.locator(".field-row")).toHaveCount(0);
+  await expect(viewer.locator(".node[data-search-match]")).toHaveCount(2);
+
+  await viewer.evaluate((element) => {
+    (
+      element as unknown as {
+        clearSearch(): void;
+      }
+    ).clearSearch();
+  });
+  await expect(viewer.locator("[data-search-match]")).toHaveCount(0);
+  await expect(viewer.locator("[data-search-dimmed]")).toHaveCount(0);
+});

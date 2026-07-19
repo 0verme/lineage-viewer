@@ -1,13 +1,17 @@
 import { layoutLineageGraph } from "../layout/index.js";
 import type { NormalizedLineageGraph } from "../graph/types.js";
 import type { ResolvedLineageViewerOptions } from "../public-api/options.js";
+import { measureNodeHeight } from "./field-renderer.js";
 import type { RenderEdge, RenderNode, RenderScene } from "./types.js";
 
 export function createLayeredRenderScene(
   graph: NormalizedLineageGraph,
   options: ResolvedLineageViewerOptions,
 ): RenderScene {
-  const layout = layoutLineageGraph(graph, options);
+  const nodeHeightById = new Map(
+    graph.nodes.map((node) => [node.id, measureNodeHeight(node, options.nodeHeight)]),
+  );
+  const layout = layoutLineageGraph(graph, { ...options, nodeHeightById });
   const nodes: RenderNode[] = layout.nodes.map((position) => ({
     ...position,
     node: graph.nodeById.get(position.id)!,

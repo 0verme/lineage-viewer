@@ -33,43 +33,65 @@ export function layoutLineageGraph(input: LayoutInput, options: LayoutOptions): 
   }
   const blocks = createBlocks(components, byKey);
   const vertical = options.direction === "TB" || options.direction === "BT";
-  const primaryNodeSize = vertical ? options.nodeHeight : options.nodeWidth;
-  const crossNodeSize = vertical ? options.nodeWidth : options.nodeHeight;
+  const heightFor = (nodeId: string): number =>
+    options.nodeHeightById?.get(nodeId) ?? options.nodeHeight;
+  const primarySizeFor = (nodeId: string): number =>
+    vertical ? heightFor(nodeId) : options.nodeWidth;
+  const crossSizeFor = (nodeId: string): number =>
+    vertical ? options.nodeWidth : heightFor(nodeId);
   const blockGap = Math.max(options.nodeGap * 2, 64);
   const logical: Array<{
     id: string;
     primary: number;
     cross: number;
+    width: number;
+    height: number;
     rank: number;
     componentKey: string;
   }> = [];
   let crossOffset = 0;
-  let totalPrimary = primaryNodeSize;
+  let totalPrimary = vertical
+    ? Math.max(options.nodeHeight, ...input.nodes.map((node) => heightFor(node.id)))
+    : options.nodeWidth;
   for (const block of blocks) {
     const layers = rankAndOrder(block);
     const rankStarts: number[] = [];
+    const rankSizes = layers.map((layer) =>
+      Math.max(
+        0,
+        ...layer.flatMap((component) => component.nodeIds.map((nodeId) => primarySizeFor(nodeId))),
+      ),
+    );
     let primary = 0;
     for (let rank = 0; rank < layers.length; rank += 1) {
       rankStarts[rank] = primary;
-      primary += primaryNodeSize + options.layerGap;
+      primary += (rankSizes[rank] ?? 0) + options.layerGap;
     }
     totalPrimary = Math.max(totalPrimary, Math.max(0, primary - options.layerGap));
     let blockCross = 0;
     for (const layer of layers) {
       let cross = 0;
       for (const component of layer) {
-        const memberCount = component.nodeIds.length;
-        const size = memberCount * crossNodeSize + Math.max(0, memberCount - 1) * options.nodeGap;
-        for (let index = 0; index < memberCount; index += 1) {
+        const size =
+          component.nodeIds.reduce((sum, nodeId) => sum + crossSizeFor(nodeId), 0) +
+          Math.max(0, component.nodeIds.length - 1) * options.nodeGap;
+        let memberCross = 0;
+        for (let index = 0; index < component.nodeIds.length; index += 1) {
           const id = component.nodeIds[index];
           if (id === undefined) continue;
+          const nodePrimarySize = primarySizeFor(id);
           logical.push({
             id,
-            primary: rankStarts[component.rank] ?? 0,
-            cross: crossOffset + cross + index * (crossNodeSize + options.nodeGap),
+            primary:
+              (rankStarts[component.rank] ?? 0) +
+              ((rankSizes[component.rank] ?? nodePrimarySize) - nodePrimarySize) / 2,
+            cross: crossOffset + cross + memberCross,
+            width: options.nodeWidth,
+            height: heightFor(id),
             rank: component.rank,
             componentKey: component.key,
           });
+          memberCross += crossSizeFor(id) + options.nodeGap;
         }
         cross += size + options.nodeGap;
       }
@@ -77,7 +99,10 @@ export function layoutLineageGraph(input: LayoutInput, options: LayoutOptions): 
     }
     crossOffset += blockCross + blockGap;
   }
-  const totalCross = Math.max(crossNodeSize, Math.max(0, crossOffset - blockGap));
+  const totalCross = Math.max(
+    vertical ? options.nodeWidth : options.nodeHeight,
+    Math.max(0, crossOffset - blockGap),
+  );
   const nodes: PositionedLayoutNode[] = logical
     .sort((left, right) => compare(left.id, right.id))
     .map((item) => mapDirection(item, options, totalPrimary));
@@ -202,20 +227,28 @@ function barycenter(
 }
 
 function mapDirection(
-  item: { id: string; primary: number; cross: number; rank: number; componentKey: string },
+  item: {
+    id: string;
+    primary: number;
+    cross: number;
+    width: number;
+    height: number;
+    rank: number;
+    componentKey: string;
+  },
   options: LayoutOptions,
   totalPrimary: number,
 ): PositionedLayoutNode {
   const vertical = options.direction === "TB" || options.direction === "BT";
   const reverse = options.direction === "RL" || options.direction === "BT";
-  const primarySize = vertical ? options.nodeHeight : options.nodeWidth;
+  const primarySize = vertical ? item.height : item.width;
   const primary = reverse ? totalPrimary - item.primary - primarySize : item.primary;
   return {
     id: item.id,
     x: padding + (vertical ? item.cross : primary),
     y: padding + (vertical ? primary : item.cross),
-    width: options.nodeWidth,
-    height: options.nodeHeight,
+    width: item.width,
+    height: item.height,
     rank: item.rank,
     componentKey: item.componentKey,
   };

@@ -21,4 +21,6 @@ export type LayoutInput = Pick<NormalizedLineageGraph, "nodes" | "edges" | "cycl
 export type LayoutOptions = Pick<
   ResolvedLineageViewerOptions,
   "direction" | "nodeWidth" | "nodeHeight" | "layerGap" | "nodeGap"
->;
+> & {
+  readonly nodeHeightById?: ReadonlyMap<string, number>;
+};

@@ -9,6 +9,9 @@ test("the Phase 5 vanilla preview renders interactive lineage", async ({ page })
 
   await expect(page).toHaveTitle("lineage-viewer Phase 5 preview");
   const viewer = page.locator("lineage-viewer");
+  await viewer.evaluate((element) => {
+    (element as HTMLElement).style.height = "480px";
+  });
   await expect(viewer).toBeVisible();
   await expect(viewer.locator("svg")).toHaveCount(1);
   await expect(viewer.locator(".node")).toHaveCount(4);
@@ -43,4 +46,50 @@ test("the Phase 5 vanilla preview renders interactive lineage", async ({ page })
     "data-highlighted",
     "",
   );
+});
+
+test("renders field names and data types inside dynamically sized table nodes", async ({
+  page,
+}) => {
+  await page.goto("/examples/vanilla/");
+  const viewer = page.locator("lineage-viewer");
+  await viewer.evaluate((element) => {
+    (element as HTMLElement).style.height = "480px";
+    (
+      element as unknown as {
+        setData(data: unknown): void;
+      }
+    ).setData({
+      nodes: [
+        {
+          id: "orders",
+          label: "Orders",
+          fields: [
+            { id: "order_id", label: "Order ID", dataType: "bigint" },
+            { id: "created_at", dataType: "timestamp" },
+          ],
+        },
+        { id: "customers", label: "Customers", fields: [] },
+        { id: "legacy", label: "Legacy table" },
+      ],
+      edges: [],
+    });
+  });
+  await expect(viewer).toBeVisible();
+
+  const orders = viewer.locator('.node[data-node-id="orders"]');
+  await expect(orders.locator(".field-row")).toHaveCount(2);
+  await expect(orders.locator(".field-name")).toHaveText(["Order ID", "created_at"]);
+  await expect(orders.locator(".field-data-type")).toHaveText(["bigint", "timestamp"]);
+  await expect(orders.locator(".node-surface")).toHaveAttribute("height", "104");
+  await expect(viewer.locator('.node[data-node-id="customers"] .node-surface')).toHaveAttribute(
+    "height",
+    "72",
+  );
+  await expect(viewer.locator('.node[data-node-id="legacy"] .node-surface')).toHaveAttribute(
+    "height",
+    "72",
+  );
+  await expect(viewer.locator('.node[data-node-id="customers"] .fields')).toHaveCount(0);
+  await expect(viewer.locator('.node[data-node-id="legacy"] .fields')).toHaveCount(0);
 });

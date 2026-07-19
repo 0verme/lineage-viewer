@@ -115,4 +115,74 @@ describe("createLayeredRenderScene", () => {
     expect(edge.labelX).toBeLessThan(nodes.get("b")!.x);
     expect(edge.labelY).toBe(nodes.get("a")!.y + nodes.get("a")!.height / 2);
   });
+
+  it("keeps legacy node height and expands nodes with visible fields", () => {
+    const result = scene({
+      nodes: [
+        { id: "empty", label: "Empty fields", fields: [] },
+        {
+          id: "fields",
+          label: "With fields",
+          fields: [{ id: "first" }, { id: "second" }, { id: "third" }],
+        },
+        { id: "legacy", label: "Legacy" },
+      ],
+      edges: [],
+    });
+    const nodes = positions(result);
+
+    expect(nodes.get("legacy")!.height).toBe(defaultLineageViewerOptions.nodeHeight);
+    expect(nodes.get("empty")!.height).toBe(defaultLineageViewerOptions.nodeHeight);
+    expect(nodes.get("fields")!.height).toBe(132);
+  });
+
+  it("uses variable node heights without overlapping nodes in a horizontal layer", () => {
+    const result = scene({
+      nodes: [
+        {
+          id: "a",
+          label: "A",
+          fields: [{ id: "one" }, { id: "two" }, { id: "three" }],
+        },
+        { id: "b", label: "B", fields: [{ id: "one" }] },
+        { id: "c", label: "C" },
+      ],
+      edges: [
+        { source: "a", target: "c" },
+        { source: "b", target: "c" },
+      ],
+    });
+    const nodes = positions(result);
+    const first = nodes.get("a")!;
+    const second = nodes.get("b")!;
+
+    expect(first.rank).toBe(second.rank);
+    expect(first.y + first.height + defaultLineageViewerOptions.nodeGap).toBeLessThanOrEqual(
+      second.y,
+    );
+  });
+
+  it("advances vertical ranks by the tallest node in each layer", () => {
+    const result = scene(
+      {
+        nodes: [
+          {
+            id: "a",
+            label: "A",
+            fields: [{ id: "one" }, { id: "two" }, { id: "three" }],
+          },
+          { id: "b", label: "B" },
+        ],
+        edges: [{ source: "a", target: "b" }],
+      },
+      "TB",
+    );
+    const nodes = positions(result);
+    const source = nodes.get("a")!;
+    const target = nodes.get("b")!;
+
+    expect(target.y).toBeGreaterThanOrEqual(
+      source.y + source.height + defaultLineageViewerOptions.layerGap,
+    );
+  });
 });

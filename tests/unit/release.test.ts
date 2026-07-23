@@ -9,7 +9,7 @@ import {
 } from "../../scripts/release/release-utils.mjs";
 
 describe("release helpers", () => {
-  it("publishes discoverable package metadata for the alpha release", () => {
+  it("publishes discoverable package metadata for the stable release", () => {
     const packageJson = JSON.parse(
       readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
     ) as {
@@ -18,7 +18,7 @@ describe("release helpers", () => {
       engines: { node: string };
       files: string[];
     };
-    expect(packageJson.version).toBe("0.1.0-alpha.2");
+    expect(packageJson.version).toBe("1.0.0");
     expect(packageJson.keywords).toEqual([
       "data-lineage",
       "column-lineage",

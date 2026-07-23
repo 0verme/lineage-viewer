@@ -6,7 +6,7 @@
 
 lineage-viewer is an embeddable data lineage viewer built with native Web Components, Shadow DOM, and SVG. Pass it JSON to render interactive table-level and column-level lineage in any web page or frontend framework.
 
-[![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Alpha` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
+[![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Stable` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
 
 [Live demo](https://lineage.overme.cn) · [Transformation demo](https://lineage.overme.cn/demo.html?id=column-transform&lang=en) · [JSON Playground](https://lineage.overme.cn/playground.html?lang=en) · [Quick start](#quick-start) · [中文文档](./README.md)
 
@@ -70,7 +70,7 @@ import "lineage-viewer/define";
 
 ## Project status
 
-This project is Alpha / under active development. The current npm version is `0.1.0-alpha.2`; the API may still change.
+The current stable version is `1.0.0`. Public schemas, exported types, component properties, methods, and events follow Semantic Versioning; breaking changes are reserved for a new major version.
 
 ## Live demo
 
@@ -289,7 +289,7 @@ Layout uses a fixed node width and field-row height and does not measure text, a
 
 ## Contributing
 
-Issues and pull requests are welcome. Run relevant checks before submitting and avoid generated or unrelated changes. See [release readiness](docs/release-readiness.md) for the release checklist. All public examples and tests use synthetic data.
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md), run relevant checks before submitting, and avoid generated or unrelated changes. See [release readiness](docs/release-readiness.md) for the release checklist. All public examples and tests use synthetic data. Report security issues privately as described in [SECURITY.md](./SECURITY.md).
 
 ## License
 

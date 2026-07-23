@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-23
+
 ### Added
 
 - Independent SQLGlot Adapter package and CLI for SELECT, JOIN, alias, scalar transform, and
@@ -14,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Dependency-free OpenLineage Adapter package and CLI for RunEvent jobs, datasets, schema fields,
   and column lineage facets.
 - Runnable OpenLineage-event browser example backed by generated Adapter JSON.
+
+### Changed
+
+- Declared the public viewer API stable under Semantic Versioning.
+- Added contributor guidance, private security reporting instructions, and GitHub issue templates.
 
 ## [0.1.0-alpha.2] - 2026-07-19
 

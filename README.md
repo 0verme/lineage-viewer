@@ -6,7 +6,7 @@
 
 lineage-viewer 是一个轻量、无框架依赖、可嵌入的数据血缘查看器。它使用原生 Web Component、Shadow DOM 和 SVG，仅需传入 JSON，即可在任意网页或前端框架中展示交互式表级与字段级血缘。
 
-[![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Alpha` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
+[![CI](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/0verme/lineage-viewer/actions/workflows/ci.yml) `Stable` · `TypeScript` · `Web Component` · `Zero runtime dependencies` · `Apache-2.0`
 
 [在线演示](https://lineage.overme.cn) · [字段转换示例](https://lineage.overme.cn/demo.html?id=column-transform) · [JSON Playground](https://lineage.overme.cn/playground.html) · [快速开始](#快速开始) · [英文文档](./README.en.md)
 
@@ -65,7 +65,7 @@ import "lineage-viewer/define";
 
 ## 项目状态
 
-项目目前处于 Alpha / 积极开发中。npm 当前版本为 `0.1.0-alpha.2`，API 在后续版本中仍可能调整。
+当前稳定版本为 `1.0.0`。公开 Schema、导出类型、组件属性、方法和事件遵循语义化版本；破坏性变更只在新的主版本中发布。
 
 ## 在线演示
 
@@ -235,7 +235,7 @@ npm run screenshot:playground
 
 ## 贡献指南
 
-欢迎通过 issue 或 pull request 参与。提交前请运行相关检查，并避免修改生成产物或无关文件；发布前检查清单位于[发布准备](docs/release-readiness.md)。公开示例和测试仅使用合成数据。
+欢迎通过 issue 或 pull request 参与。提交前请阅读 [CONTRIBUTING.md](./CONTRIBUTING.md) 并运行相关检查；发布前检查清单位于[发布准备](docs/release-readiness.md)。公开示例和测试仅使用合成数据。安全问题请按 [SECURITY.md](./SECURITY.md) 私下报告。
 
 ## 开源协议
 

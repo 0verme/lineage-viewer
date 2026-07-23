@@ -1,6 +1,6 @@
 {
   "name": "lineage-viewer",
-  "version": "0.1.0-alpha.2",
+  "version": "1.0.0",
   "description": "A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.",
   "homepage": "https://lineage.overme.cn",
   "repository": {

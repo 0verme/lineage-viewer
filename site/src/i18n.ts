@@ -5,7 +5,7 @@ export const LANGUAGE_STORAGE_KEY = "lineage-viewer-demo-language";
 const locales = {
   en: {
     languageSwitcher: "Language: Chinese | English",
-    status: "Alpha / active development",
+    status: "Stable / actively maintained",
     homeTitle: "Lineage graphs, made easy to inspect.",
     homeLead:
       "A lightweight, framework-free Web Component for interactive table-level and column-level data lineage visualization.",
@@ -104,7 +104,7 @@ const locales = {
   },
   "zh-CN": {
     languageSwitcher: "语言：中文 | English",
-    status: "Alpha / 积极开发中",
+    status: "稳定版 / 持续维护",
     homeTitle: "让数据血缘更容易理解",
     homeLead: "轻量、无框架依赖、可嵌入的 Web Component，支持交互式表级与字段级数据血缘。",
     showcase: "产品展示",

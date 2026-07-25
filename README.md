@@ -227,7 +227,9 @@ npm run screenshot:playground
 
 ## 项目路线图
 
-当前已完成包消费与公开 API 冻结等基础阶段。后续重点包括直接集成文档和框架示例。详见[路线图](docs/roadmap.md)。
+当前已完成包消费与公开 API 冻结等基础阶段。企业 React 宿主可参考
+[生产集成指南](docs/production-integration.md)，了解私有 registry、领域图适配、事件侧栏与根邻域定位。
+后续方向详见[路线图](docs/roadmap.md)。
 
 ## 已知限制
 

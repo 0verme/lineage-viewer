@@ -1,5 +1,5 @@
 /** The current package version. */
-export const packageVersion = "1.0.0" as const;
+export const packageVersion = "1.1.0" as const;
 
 export { LineageViewerElement } from "./element/index.js";
 export { defineLineageViewer } from "./registration.js";
@@ -33,8 +33,11 @@ export type {
 export type {
   LineageDiagnostic,
   LineageEdge,
+  LineageEdgeType,
   LineageField,
   LineageGraphData,
   LineageNode,
+  LineageNodeStatus,
+  LineageNodeType,
   LineageTransformType,
 } from "./schema/index.js";

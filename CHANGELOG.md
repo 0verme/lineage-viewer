@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-07-25
+
+### Added
+
+- Framework-neutral domain graph adapter with configurable node, edge, and label mapping.
+- Optional React canvas package for lifecycle, events, viewport fitting, and imperative controls.
+- Production integration guidance for private registries and read-only enterprise hosts.
+
 ## [1.0.0] - 2026-07-23
 
 ### Added

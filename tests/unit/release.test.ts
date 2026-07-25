@@ -18,7 +18,7 @@ describe("release helpers", () => {
       engines: { node: string };
       files: string[];
     };
-    expect(packageJson.version).toBe("1.0.0");
+    expect(packageJson.version).toBe("1.1.0");
     expect(packageJson.keywords).toEqual([
       "data-lineage",
       "column-lineage",

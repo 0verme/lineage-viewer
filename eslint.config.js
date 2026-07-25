@@ -8,6 +8,7 @@ export default tseslint.config(
       ".reference/**",
       "coverage/**",
       "dist/**",
+      "packages/*/dist/**",
       "site-dist/**",
       "test-consumers/**",
       "node_modules/**",
@@ -23,7 +24,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.ts"],
+    files: ["**/*.ts", "packages/**/*.tsx"],
     extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {

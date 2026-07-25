@@ -44,6 +44,7 @@ const required = [
   "README.en.md",
   "README.zh-CN.md",
   "docs/assets/column-lineage.png",
+  "docs/production-integration.md",
   "dist/define.d.ts",
   "dist/define.js",
   "dist/index.d.ts",

@@ -5,6 +5,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "paths": {
@@ -28,6 +29,8 @@
   },
   "include": [
     "src/**/*.ts",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
     "site/**/*.ts",
     "tests/**/*.ts",
     "examples/**/*.ts",

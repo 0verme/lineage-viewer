@@ -1,0 +1,40 @@
+{
+  "name": "@lineage-viewer/domain-adapter",
+  "version": "1.1.0",
+  "description": "Framework-neutral domain graph adapter for lineage-viewer.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pack:check": "npm pack --dry-run"
+  },
+  "peerDependencies": {
+    "lineage-viewer": "^1.1.0"
+  },
+  "peerDependenciesMeta": {
+    "lineage-viewer": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

@@ -25,6 +25,8 @@
 - [JSON Playground（英文文档）](./json-playground.md)：浏览器内本地 JSON 预览。
 - [发布准备（英文文档）](./release-readiness.md)：发版前检查清单。
 - [发布流程（英文文档）](./releasing.md)：发布与部署流程。
-- [路线图（英文文档）](./roadmap.md)：阶段状态与后续方向。
+- [生产集成（英文文档）](./production-integration.md)：私有 registry、领域适配与宿主职责。
+- [路线图（英文文档）](./roadmap.md)：核心阶段与 Post-1.0 里程碑。
+- [M1+M2 任务清单（英文文档）](./milestones-m1-m2.md)：生态打磨与生产宿主参考壳的 issue 级拆分与验收标准。
 
 这些链接保留现有英文技术文档的原始路径，避免破坏外部引用；尚未翻译的内容均明确标为“英文文档”。

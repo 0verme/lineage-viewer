@@ -65,7 +65,7 @@ import "lineage-viewer/define";
 
 ## 项目状态
 
-当前稳定版本为 `1.0.0`。公开 Schema、导出类型、组件属性、方法和事件遵循语义化版本；破坏性变更只在新的主版本中发布。
+当前稳定版本为 `1.1.0`。公开 Schema、导出类型、组件属性、方法和事件遵循语义化版本；破坏性变更只在新的主版本中发布。
 
 ## 在线演示
 
@@ -227,9 +227,7 @@ npm run screenshot:playground
 
 ## 项目路线图
 
-当前已完成包消费与公开 API 冻结等基础阶段。企业 React 宿主可参考
-[生产集成指南](docs/production-integration.md)，了解私有 registry、领域图适配、事件侧栏与根邻域定位。
-后续方向详见[路线图](docs/roadmap.md)。
+核心 Viewer（Phase 1–9）与稳定 1.x 内核已完成。当前 Post-1.0 重心是生态包打磨与生产宿主集成：见[路线图](docs/roadmap.md)与 [M1+M2 任务清单](docs/milestones-m1-m2.md)。企业 React 宿主可参考[生产集成指南](docs/production-integration.md)。
 
 ## 已知限制
 

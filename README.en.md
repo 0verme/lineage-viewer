@@ -70,7 +70,7 @@ import "lineage-viewer/define";
 
 ## Project status
 
-The current stable version is `1.0.0`. Public schemas, exported types, component properties, methods, and events follow Semantic Versioning; breaking changes are reserved for a new major version.
+The current stable version is `1.1.0`. Public schemas, exported types, component properties, methods, and events follow Semantic Versioning; breaking changes are reserved for a new major version.
 
 ## Live demo
 
@@ -281,7 +281,7 @@ Modern browsers with Custom Elements, Shadow DOM, SVG, `ResizeObserver`, and ES 
 
 ## Roadmap
 
-Package consumption and public API freeze foundations are complete. Direct integration documentation and framework examples are planned next. See the [roadmap](docs/roadmap.md).
+Core viewer phases 1–9 and the stable 1.x kernel are complete. Post-1.0 work focuses on ecosystem package polish and production host integration. See the [roadmap](docs/roadmap.md) and the [M1 + M2 issue backlog](docs/milestones-m1-m2.md). Enterprise React hosts can follow the [production integration guide](docs/production-integration.md).
 
 ## Known limitations
 

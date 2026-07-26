@@ -17,4 +17,6 @@ The repository's primary documentation entry points are the [Simplified Chinese 
 - [JSON Playground](./json-playground.md)
 - [Release readiness](./release-readiness.md)
 - [Release guide](./releasing.md)
+- [Production host integration](./production-integration.md)
 - [Roadmap](./roadmap.md)
+- [M1 + M2 issue backlog](./milestones-m1-m2.md)

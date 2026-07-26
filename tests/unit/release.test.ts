@@ -3,8 +3,10 @@ import { readFileSync } from "node:fs";
 
 import {
   extractChangelogEntry,
+  readWorkspacePackageVersions,
   resolveDistTag,
   validateVersionTag,
+  validateWorkspaceVersions,
   versionFromTag,
 } from "../../scripts/release/release-utils.mjs";
 
@@ -32,6 +34,17 @@ describe("release helpers", () => {
   });
   it("accepts a matching semantic-version tag", () => {
     expect(validateVersionTag("v1.2.3", "1.2.3")).toBe("1.2.3");
+  });
+
+  it("requires all public workspace packages to share a release version", () => {
+    expect(validateWorkspaceVersions(readWorkspacePackageVersions())).toBe("1.1.0");
+    expect(() =>
+      validateWorkspaceVersions({
+        "lineage-viewer": "1.1.0",
+        "@lineage-viewer/domain-adapter": "1.1.1",
+        "@lineage-viewer/react": "1.1.0",
+      }),
+    ).toThrow(/must match/u);
   });
 
   it("rejects mismatched and malformed tags", () => {

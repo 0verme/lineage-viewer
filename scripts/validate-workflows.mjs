@@ -44,6 +44,9 @@ requireText(release, "tags:", "release workflow");
 requireText(release, '"v*"', "release workflow");
 requireText(release, "id-token: write", "release workflow");
 requireText(release, "npm publish --provenance", "release workflow");
+requireText(release, "npm publish --workspace @lineage-viewer/domain-adapter", "release workflow");
+requireText(release, "npm publish --workspace @lineage-viewer/react", "release workflow");
+requireText(release, "npm run pack:check", "release workflow");
 requireText(release, "github.event_name == 'push'", "release workflow");
 
 for (const script of [

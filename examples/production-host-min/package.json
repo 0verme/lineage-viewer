@@ -1,0 +1,23 @@
+{
+  "name": "lineage-viewer-production-host-min-example",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build"
+  },
+  "dependencies": {
+    "@lineage-viewer/domain-adapter": "1.1.0",
+    "@lineage-viewer/react": "1.1.0",
+    "lineage-viewer": "1.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.4"
+  }
+}

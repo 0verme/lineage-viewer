@@ -1,0 +1,45 @@
+:root {
+  color: #172033;
+  background: #f7f9fc;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1,
+h2 {
+  margin-top: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 16px;
+}
+
+.viewer-host {
+  display: block;
+  min-height: 520px;
+  border: 1px solid #d6dce7;
+  background: white;
+}
+
+aside {
+  padding: 16px;
+  border: 1px solid #d6dce7;
+  background: white;
+}
+
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

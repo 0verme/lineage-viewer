@@ -80,6 +80,8 @@ jobs:
       - id: dist-tag
         run: echo "value=$(node scripts/release/resolve-dist-tag.mjs '${{ github.ref_name }}')" >> "$GITHUB_OUTPUT"
       - run: npm publish --provenance --access public --tag "${{ steps.dist-tag.outputs.value }}"
+      - run: npm publish --workspace @lineage-viewer/domain-adapter --provenance --access public --tag "${{ steps.dist-tag.outputs.value }}"
+      - run: npm publish --workspace @lineage-viewer/react --provenance --access public --tag "${{ steps.dist-tag.outputs.value }}"
 
   github-release:
     if: github.event_name == 'push'

@@ -3,21 +3,14 @@
 `lineage-viewer` is the rendering kernel. The host remains responsible for lineage collection,
 subgraph APIs, pagination or truncation, routing, toolbars, and detail panels.
 
-## Private registry
+## Public npm packages
 
-Publish the three packages with the same version:
+The three packages are published publicly to npm with the same version:
 
 ```text
 lineage-viewer@1.1.0
 @lineage-viewer/domain-adapter@1.1.0
 @lineage-viewer/react@1.1.0
-```
-
-Configure the private registry in the deployment environment without committing credentials:
-
-```ini
-@lineage-viewer:registry=https://registry.example.internal/
-//registry.example.internal/:_authToken=${NPM_TOKEN}
 ```
 
 Install fixed compatible versions in each host:
@@ -28,9 +21,22 @@ npm install --save-exact lineage-viewer@1.1.0 \
   @lineage-viewer/react@1.1.0
 ```
 
-All three packages follow Semantic Versioning. Keep their minor versions aligned. Hosts should
-upgrade and validate one minor release at a time; breaking schema or element API changes are
-reserved for a new major version.
+All three packages follow Semantic Versioning and always share the same release version. Hosts
+should upgrade and validate one minor release at a time; breaking schema or element API changes
+are reserved for a new major version.
+
+## Enterprise registry mirror (optional)
+
+An enterprise can proxy the public packages through an internal registry. Configure credentials in
+the deployment environment, never in this repository:
+
+```ini
+@lineage-viewer:registry=https://registry.example.internal/
+//registry.example.internal/:_authToken=${NPM_TOKEN}
+```
+
+The mirror must retain the same public package names and versions so the install command above
+continues to resolve an aligned release.
 
 ## Data flow
 

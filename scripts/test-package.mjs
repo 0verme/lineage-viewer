@@ -19,22 +19,37 @@ const run = (command, args, cwd) => {
 if (!npmCli) throw new Error("npm_execpath is unavailable; run this script through npm.");
 
 let temporaryDirectory;
-let tarball;
-let preview;
+const previews = [];
+
+function packPackage(packageName, destination) {
+  const packed = npm(
+    "pack",
+    "--json",
+    "--pack-destination",
+    destination,
+    ...(packageName === "lineage-viewer" ? [] : ["--workspace", packageName]),
+  );
+  if (packed.status !== 0) throw new Error(packed.stderr || `npm pack failed for ${packageName}.`);
+  const report = JSON.parse(packed.stdout)[0];
+  if (!report?.filename) throw new Error(`npm pack returned no tarball for ${packageName}.`);
+  return join(destination, report.filename);
+}
+
 try {
   run(process.execPath, [npmCli, "run", "build"], root);
-  const packed = npm("pack", "--json");
-  if (packed.status !== 0) throw new Error(packed.stderr || "npm pack failed.");
-  const report = JSON.parse(packed.stdout)[0];
-  tarball = join(root, report.filename);
   temporaryDirectory = await mkdtemp(join(tmpdir(), "lineage-viewer-package-"));
+  const tarballs = {
+    viewer: packPackage("lineage-viewer", temporaryDirectory),
+    domainAdapter: packPackage("@lineage-viewer/domain-adapter", temporaryDirectory),
+    react: packPackage("@lineage-viewer/react", temporaryDirectory),
+  };
 
   for (const name of ["vanilla", "vite-ts"]) {
     const consumer = join(temporaryDirectory, name);
     await cp(join(root, "test-consumers", name), consumer, { recursive: true });
     run(
       process.execPath,
-      [npmCli, "install", "--ignore-scripts", "--no-audit", "--no-fund", tarball],
+      [npmCli, "install", "--ignore-scripts", "--no-audit", "--no-fund", tarballs.viewer],
       consumer,
     );
     if (name === "vite-ts")
@@ -50,12 +65,46 @@ try {
     );
   }
 
+  const reactDomain = join(temporaryDirectory, "react-domain");
+  await cp(join(root, "test-consumers", "react-domain"), reactDomain, { recursive: true });
+  run(
+    process.execPath,
+    [
+      npmCli,
+      "install",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      tarballs.viewer,
+      tarballs.domainAdapter,
+      tarballs.react,
+      "react@18.3.1",
+      "react-dom@18.3.1",
+      "vite@8.1.4",
+      "typescript@6.0.3",
+      "@types/react@18.3.31",
+      "@types/react-dom@18.3.7",
+    ],
+    reactDomain,
+  );
+  run(
+    process.execPath,
+    [join(root, "node_modules", "typescript", "bin", "tsc"), "-p", "tsconfig.json"],
+    reactDomain,
+  );
+  run(
+    process.execPath,
+    [join(root, "node_modules", "vite", "bin", "vite.js"), "build"],
+    reactDomain,
+  );
+
   const vanilla = join(temporaryDirectory, "vanilla");
-  preview = spawn(
+  const preview = spawn(
     process.execPath,
     [join(root, "node_modules", "vite", "bin", "vite.js"), "--host", "127.0.0.1", "--port", "4179"],
     { cwd: vanilla, stdio: "ignore" },
   );
+  previews.push(preview);
   await new Promise((resolveReady, reject) => {
     const deadline = setTimeout(
       () => reject(new Error("Vanilla consumer server did not start.")),
@@ -84,16 +133,51 @@ try {
       .evaluate((element) => element.shadowRoot?.querySelectorAll("svg .node").length)) !== 2
   )
     throw new Error("Vanilla consumer did not render the expected SVG nodes.");
+
+  const reactPreview = spawn(
+    process.execPath,
+    [join(root, "node_modules", "vite", "bin", "vite.js"), "--host", "127.0.0.1", "--port", "4180"],
+    { cwd: reactDomain, stdio: "ignore" },
+  );
+  previews.push(reactPreview);
+  await new Promise((resolveReady, reject) => {
+    const deadline = setTimeout(
+      () => reject(new Error("React domain consumer server did not start.")),
+      15_000,
+    );
+    const poll = () => {
+      fetch("http://127.0.0.1:4180/")
+        .then(() => {
+          clearTimeout(deadline);
+          resolveReady();
+        })
+        .catch(() => setTimeout(poll, 100));
+    };
+    poll();
+  });
+  const reactPage = await browser.newPage();
+  await reactPage.goto("http://127.0.0.1:4180/", { waitUntil: "networkidle" });
+  const node = reactPage.locator("lineage-viewer .node").first();
+  await node.click();
+  await reactPage.waitForFunction(() =>
+    globalThis.document
+      .querySelector("[data-testid='detail']")
+      ?.textContent?.startsWith("selected:"),
+  );
+  reactPreview.kill();
+  await once(reactPreview, "exit");
+  previews.splice(previews.indexOf(reactPreview), 1);
   await browser.close();
   process.stdout.write(
-    "Verified vanilla browser consumer and Vite TypeScript consumer from packed tarball.\n",
+    "Verified vanilla, Vite TypeScript, and React domain consumers from packed tarballs.\n",
   );
 } finally {
-  if (preview && !preview.killed) {
-    preview.kill();
-    await once(preview, "exit");
+  for (const preview of previews) {
+    if (!preview.killed) {
+      preview.kill();
+      await once(preview, "exit");
+    }
   }
-  if (tarball) await rm(tarball, { force: true });
   if (temporaryDirectory)
     await rm(temporaryDirectory, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }

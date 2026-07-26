@@ -1,5 +1,11 @@
 import { readFileSync } from "node:fs";
 
+const workspacePackagePaths = {
+  "lineage-viewer": "../../package.json",
+  "@lineage-viewer/domain-adapter": "../../packages/domain-adapter/package.json",
+  "@lineage-viewer/react": "../../packages/react/package.json",
+};
+
 const semver =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u;
 
@@ -50,5 +56,31 @@ export function extractChangelogEntry(markdown, version) {
 }
 
 export function readPackageVersion() {
-  return JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")).version;
+  return readWorkspacePackageVersions()["lineage-viewer"];
+}
+
+export function readWorkspacePackageVersions() {
+  return Object.fromEntries(
+    Object.entries(workspacePackagePaths).map(([name, path]) => {
+      const packageJson = JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
+      return [name, packageJson.version];
+    }),
+  );
+}
+
+export function validateWorkspaceVersions(versions) {
+  const entries = Object.entries(versions);
+  const [firstName, firstVersion] = entries[0] ?? [];
+  if (!firstName || typeof firstVersion !== "string" || !semver.test(firstVersion)) {
+    throw new Error("Workspace package versions must contain valid semantic versions.");
+  }
+  const mismatched = entries.filter(([, version]) => version !== firstVersion);
+  if (mismatched.length > 0) {
+    throw new Error(
+      `Workspace package versions must match; received ${entries
+        .map(([name, version]) => `${name}@${version}`)
+        .join(", ")}.`,
+    );
+  }
+  return firstVersion;
 }

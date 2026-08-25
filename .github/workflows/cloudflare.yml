@@ -25,7 +25,7 @@ jobs:
       - name: Build static site
         run: npm run build:site
       - name: Deploy static assets to Cloudflare
-        uses: 0verme/ci-workflows/.github/actions/cloudflare-worker-deploy@main
+        uses: 0verme/ci-workflows/.github/actions/cloudflare-worker-deploy@v1
         with:
           working_directory: .
           command: deploy

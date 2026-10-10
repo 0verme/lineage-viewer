@@ -54,10 +54,10 @@ datasets, schemas, and column lineage facets into the same Viewer schema.
 
 ## Quick start
 
-Install the published package from npm:
+The source currently targets `1.1.0`. After confirming that this version is present in the official npm Registry, install it exactly:
 
 ```sh
-npm install lineage-viewer
+npm install --save-exact lineage-viewer@1.1.0
 ```
 
 ```html
@@ -70,7 +70,7 @@ import "lineage-viewer/define";
 
 ## Project status
 
-The current stable version is `1.1.0`. Public schemas, exported types, component properties, methods, and events follow Semantic Versioning; breaking changes are reserved for a new major version.
+The current source version is `1.1.0`; public schemas, exported types, component properties, methods, and events follow Semantic Versioning; breaking changes are reserved for a new major version.
 
 ## Live demo
 
@@ -100,7 +100,7 @@ Use lineage-viewer to visualize standardized nodes and edges for warehouses, ETL
 Install from npm:
 
 ```sh
-npm install lineage-viewer
+npm install --save-exact lineage-viewer@1.1.0
 ```
 
 ```html

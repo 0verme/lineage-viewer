@@ -5,7 +5,8 @@ subgraph APIs, pagination or truncation, routing, toolbars, and detail panels.
 
 ## Public npm packages
 
-The three packages are published publicly to npm with the same version:
+The release process publishes the three packages publicly to npm together with the same version.
+Verify that the target version is present in the official Registry before installing it:
 
 ```text
 lineage-viewer@1.1.0
@@ -13,7 +14,7 @@ lineage-viewer@1.1.0
 @lineage-viewer/react@1.1.0
 ```
 
-Install fixed compatible versions in each host:
+For the aligned `1.1.0` release, install fixed compatible versions in each host:
 
 ```sh
 npm install --save-exact lineage-viewer@1.1.0 \

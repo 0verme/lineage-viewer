@@ -9,6 +9,12 @@ import {
   validateWorkspaceVersions,
   versionFromTag,
 } from "../../scripts/release/release-utils.mjs";
+import {
+  classifyPublishedVersion,
+  createPublishPlan,
+  integrityForBytes,
+  publicPackages,
+} from "../../scripts/release/publish-packages.mjs";
 
 describe("release helpers", () => {
   it("publishes discoverable package metadata for the stable release", () => {
@@ -66,5 +72,43 @@ describe("release helpers", () => {
     expect(extractChangelogEntry(changelog, "1.2.3")).toContain("Release notes.");
     expect(extractChangelogEntry(changelog, "1.2.3")).not.toContain("Older notes.");
     expect(() => extractChangelogEntry(changelog, "1.2.4")).toThrow(/No CHANGELOG/u);
+  });
+
+  it("only skips an already published version when the tarball integrity matches", () => {
+    const integrity = integrityForBytes(Buffer.from("release artifact"));
+    expect(
+      classifyPublishedVersion({
+        name: "lineage-viewer",
+        version: "1.1.0",
+        expectedIntegrity: integrity,
+        metadata: { versions: { "1.1.0": { dist: { integrity } } } },
+      }),
+    ).toMatchObject({ action: "skip" });
+    expect(
+      classifyPublishedVersion({
+        name: "lineage-viewer",
+        version: "1.1.0",
+        expectedIntegrity: integrity,
+        metadata: { versions: {} },
+      }),
+    ).toMatchObject({ action: "publish" });
+    expect(() =>
+      classifyPublishedVersion({
+        name: "lineage-viewer",
+        version: "1.1.0",
+        expectedIntegrity: integrity,
+        metadata: { versions: { "1.1.0": { dist: { integrity: "sha512-different" } } } },
+      }),
+    ).toThrow(/refusing to publish/u);
+  });
+
+  it("plans all aligned packages before publishing any of them", () => {
+    const packages = publicPackages.map((pkg) => ({
+      ...pkg,
+      integrity: integrityForBytes(Buffer.from(pkg.name)),
+    }));
+    expect(createPublishPlan(packages, {}, "1.1.0")).toEqual(
+      packages.map((pkg) => ({ name: pkg.name, version: "1.1.0", action: "publish" })),
+    );
   });
 });

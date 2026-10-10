@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { normalizeLineageGraphData } from "../../../src/graph/index.js";
 import { traverseFieldLineage } from "../../../src/interactions/index.js";
 import { defaultLineageViewerOptions } from "../../../src/public-api/options.js";
-import { createLayeredRenderScene } from "../../../src/render/index.js";
+import {
+  createLayeredRenderScene,
+  getDirectedFlowEdges,
+  isFlowWithinPathLimit,
+  MAX_FLOW_PATHS,
+} from "../../../src/render/index.js";
 
 describe("large column lineage", () => {
   it("normalizes, routes, and traverses 100 tables, 5000 fields, and 10000 relations", () => {
@@ -53,5 +58,14 @@ describe("large column lineage", () => {
     );
     expect(traversal.fieldKeys.size).toBeGreaterThanOrEqual(100);
     expect(traversal.edgeKeys.size).toBeGreaterThanOrEqual(198);
+
+    const flow = getDirectedFlowEdges(
+      graph,
+      null,
+      { nodeId: "table_0", fieldId: "field_0" },
+      "downstream",
+    );
+    expect(flow.length).toBeGreaterThan(MAX_FLOW_PATHS);
+    expect(isFlowWithinPathLimit(flow)).toBe(false);
   });
 });

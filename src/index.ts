@@ -26,6 +26,7 @@ export type {
   LineageTableSearchResult,
   LineageViewerEventName,
   LineageViewerEventDetailMap,
+  FlowAnimationMode,
   LineageViewerOptions,
   LineageViewMode,
 } from "./public-api/index.js";

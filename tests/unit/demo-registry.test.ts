@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { normalizeLineageGraphData } from "../../src/graph/index.js";
-import { cloneGraph, demos, findDemo } from "../../site/src/demo-registry.js";
+import { cloneGraph, demos, findDemo, getLocalizedDemoData } from "../../site/src/demo-registry.js";
 
 describe("demo registry", () => {
   test("has stable, unique, URL-safe demo ids", () => {
@@ -28,6 +28,15 @@ describe("demo registry", () => {
     expect(findDemo("cycles")?.viewerOptions?.showSelfLoops).toBe(true);
     expect(findDemo("warehouse-layers")?.graph.nodes.length).toBeGreaterThanOrEqual(20);
     expect(findDemo("column-basic")?.viewerOptions?.viewMode).toBe("column");
+    expect(findDemo("lineage-flow")?.viewerOptions).toMatchObject({
+      flowAnimation: "selection",
+      highlightMode: "downstream",
+    });
+    const localizedFlow = getLocalizedDemoData("zh-CN").find((demo) => demo.id === "lineage-flow");
+    expect(localizedFlow?.title).toBe("Lineage Flow 动态追踪");
+    expect(localizedFlow?.graph.nodes.find((node) => node.id === "raw_orders")?.label).toBe(
+      "RAW_订单",
+    );
     expect(findDemo("column-transform")?.graph.edges.every((edge) => edge.transformType)).toBe(
       true,
     );

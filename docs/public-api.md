@@ -33,6 +33,7 @@ Reading `options` returns a resolved snapshot. Setting it accepts a partial `Lin
 | `layerGap` / `nodeGap`     | positive `number`, `72` / `32`                                                 | Recalculates layout.                                                                                   |
 | `highlightMode`            | `"connected" \| "both" \| "upstream" \| "downstream" \| "none"`, `"connected"` | Controls recursive selection highlighting. `connected` is a compatibility alias for `both` for fields. |
 | `viewMode`                 | `"table" \| "column" \| "mixed"`, `"mixed"`                                    | Chooses visible relation types.                                                                        |
+| `flowAnimation`            | `"off" \| "selection"`, `"off"`                                                | Opts in to finite particle passes on selection or flow/highlight option changes.                       |
 
 Read-only properties:
 
@@ -47,6 +48,20 @@ Read-only properties:
 - `mixed` renders table and column edges together and is the default.
 
 Changing the mode rebuilds visible adjacency, cycle groups, layout, and interaction state without changing `data`. Switching to `table` clears a field selection because its row is hidden.
+
+## Lineage Flow motion
+
+Motion is opt-in and does not alter graph, schema, or layout behavior:
+
+```ts
+viewer.setOptions({ flowAnimation: "selection", highlightMode: "downstream" });
+viewer.selectNode("orders");
+// Or: viewer.selectField("orders", "order_id");
+```
+
+A pointer selection or changed API selection plays one finite pass over the selected table- or field-level lineage subgraph. Enabling motion or changing `highlightMode` with an active selection also plays the current paths. `downstream` travels source-to-target; `upstream` travels target-to-source; `both` and `connected` spread out from the selected item (forward on downstream edges and backward on upstream edges). Each edge in a cycle is visited at most once. The animation does not loop; clear selection and select again to replay it.
+
+The animation reuses cached SVG edge paths and adds only non-interactive particle circles. Each viewer caps animation at 48 paths/particles; oversized selections keep the existing static highlight. It stops on selection clearing, data or layout updates, disconnection, destruction, hidden documents, or `prefers-reduced-motion`. Flow/highlight option changes restart the pass for the current selection. The effect communicates lineage relationships, not live execution or data transfer. No runtime dependency is added.
 
 ## Methods
 
@@ -99,4 +114,4 @@ All events are bubbling, composed, non-cancelable `CustomEvent`s.
 
 ## Styling boundary
 
-The element owns an open Shadow DOM. Give the host an explicit height. Supported CSS variables include background, node status, node selection/search, field, edge, dimming, and font variables declared on `:host`. Internal classes, SVG structure, generated IDs, and unlisted attributes are not compatibility guarantees.
+The element owns an open Shadow DOM. Give the host an explicit height. Supported CSS variables include background, node status, node selection/search, field, edge, `--lineage-flow-color` (animated particles and paths), dimming, and font variables declared on `:host`. Internal classes, SVG structure, generated IDs, and unlisted attributes are not compatibility guarantees.

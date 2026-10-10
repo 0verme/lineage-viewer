@@ -256,6 +256,95 @@ function columnTransformGraph(): LineageGraphData {
   };
 }
 
+function flowAnimationGraph(): LineageGraphData {
+  return {
+    schemaVersion: "1.0",
+    nodes: [
+      {
+        id: "raw_orders",
+        label: "RAW_ORDERS",
+        subtitle: "Order source",
+        fields: [
+          { id: "order_id", dataType: "bigint" },
+          { id: "amount", dataType: "decimal" },
+        ],
+      },
+      {
+        id: "stg_orders",
+        label: "STG_ORDERS",
+        subtitle: "Cleaned orders",
+        fields: [
+          { id: "order_key", dataType: "bigint" },
+          { id: "net_amount", dataType: "decimal" },
+        ],
+      },
+      {
+        id: "raw_customers",
+        label: "RAW_CUSTOMERS",
+        subtitle: "Customer source",
+        fields: [{ id: "customer_id", dataType: "bigint" }],
+      },
+      {
+        id: "fact_sales",
+        label: "FACT_SALES",
+        subtitle: "Joined sales",
+        fields: [
+          { id: "order_id", dataType: "bigint" },
+          { id: "customer_id", dataType: "bigint" },
+          { id: "revenue", dataType: "decimal" },
+        ],
+      },
+      {
+        id: "sales_dashboard",
+        label: "SALES_DASHBOARD",
+        subtitle: "Business dashboard",
+        fields: [{ id: "total_revenue", dataType: "decimal" }],
+      },
+    ],
+    edges: [
+      edge("raw_orders", "stg_orders"),
+      {
+        source: "raw_orders",
+        target: "stg_orders",
+        sourceField: "order_id",
+        targetField: "order_key",
+      },
+      {
+        source: "raw_orders",
+        target: "stg_orders",
+        sourceField: "amount",
+        targetField: "net_amount",
+      },
+      edge("stg_orders", "fact_sales"),
+      {
+        source: "stg_orders",
+        target: "fact_sales",
+        sourceField: "order_key",
+        targetField: "order_id",
+      },
+      {
+        source: "stg_orders",
+        target: "fact_sales",
+        sourceField: "net_amount",
+        targetField: "revenue",
+      },
+      {
+        source: "raw_customers",
+        target: "fact_sales",
+        sourceField: "customer_id",
+        targetField: "customer_id",
+      },
+      edge("fact_sales", "sales_dashboard"),
+      {
+        source: "fact_sales",
+        target: "sales_dashboard",
+        sourceField: "revenue",
+        targetField: "total_revenue",
+      },
+    ],
+  };
+}
+
 function mixedLineageGraph(): LineageGraphData {
   return {
     schemaVersion: "1.0",
@@ -372,6 +461,20 @@ export const demos: readonly LineageDemoDefinition[] = [
       showEdgeLabels: true,
     },
     graph: columnTransformGraph(),
+  },
+  {
+    id: "lineage-flow",
+    title: "Lineage Flow animation",
+    summary: "Follow selected table and field lineage in either direction.",
+    description:
+      "Enable selection flow, choose upstream or downstream, then select a table or field. Particles explain lineage relationships; they do not indicate live job execution.",
+    tags: ["motion", "upstream", "downstream"],
+    viewerOptions: {
+      viewMode: "mixed",
+      highlightMode: "downstream",
+      flowAnimation: "selection",
+    },
+    graph: flowAnimationGraph(),
   },
   {
     id: "mixed-lineage",
@@ -538,6 +641,13 @@ const chineseDemoText: Record<
     description: "查看字段级转换类型、计算表达式和带标签的字段连线。",
     tags: ["字段血缘", "数据转换", "表达式"],
   },
+  "lineage-flow": {
+    title: "Lineage Flow 动态追踪",
+    summary: "沿上游或下游方向查看选中的表级与字段级血缘。",
+    description:
+      "开启选中路径动效，选择上游或下游，再点击表或字段。粒子仅用于说明血缘关系，不代表实时作业执行状态。",
+    tags: ["动态血缘", "上游", "下游"],
+  },
   "mixed-lineage": {
     title: "表与字段混合血缘",
     summary: "在同一张图中展示表依赖和字段映射。",
@@ -583,6 +693,11 @@ const chineseDemoText: Record<
 };
 const chineseNames: Record<string, [string, string]> = {
   ods_orders: ["ODS_订单", "原始订单数据"],
+  raw_orders: ["RAW_订单", "订单来源"],
+  stg_orders: ["STG_订单", "清洗后的订单"],
+  raw_customers: ["RAW_客户", "客户来源"],
+  fact_sales: ["FACT_销售", "关联后的销售明细"],
+  sales_dashboard: ["SALES_看板", "业务销售看板"],
   dwd_orders: ["DWD_订单明细", "标准订单明细"],
   dws_trade: ["DWS_交易汇总", "交易主题汇总"],
   ads_daily_sales: ["ADS_每日销售", "每日销售集市"],

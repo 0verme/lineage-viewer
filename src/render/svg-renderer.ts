@@ -4,6 +4,7 @@ import { fieldReferenceKey } from "../interactions/index.js";
 import type { SearchState } from "../search/index.js";
 import type { ViewportTransform } from "../interactions/viewport-types.js";
 import { NodeRenderer } from "./node-renderer.js";
+import { FlowMotionController, type DirectedFlowEdge } from "./flow-motion.js";
 import { createSvgElement } from "./svg-dom.js";
 import type { RenderEdge, RenderNode, RenderScene } from "./types.js";
 
@@ -30,6 +31,8 @@ export class SvgRenderer {
   private readonly markerId = `lineage-viewer-arrow-${++rendererCount}`;
   private readonly nodeRenderer = new NodeRenderer(this.markerId);
   private readonly edgesGroup: SVGGElement;
+  private readonly motionLayer: SVGGElement;
+  private readonly motionController: FlowMotionController;
   private readonly nodesGroup: SVGGElement;
   private readonly edgeElements = new Map<string, EdgeElements>();
   private readonly nodeElements = new Map<string, NodeElement>();
@@ -65,9 +68,12 @@ export class SvgRenderer {
     this.sceneGroup.setAttribute("class", "scene");
     this.edgesGroup = createSvgElement("g");
     this.edgesGroup.setAttribute("class", "edges");
+    this.motionLayer = createSvgElement("g");
+    this.motionLayer.setAttribute("class", "motion-layer");
     this.nodesGroup = createSvgElement("g");
     this.nodesGroup.setAttribute("class", "nodes");
-    this.sceneGroup.append(this.edgesGroup, this.nodesGroup);
+    this.sceneGroup.append(this.edgesGroup, this.motionLayer, this.nodesGroup);
+    this.motionController = new FlowMotionController(this.motionLayer);
     this.viewportGroup.append(this.sceneGroup);
     this.svg.append(defs, this.viewportGroup);
     host.append(this.svg);
@@ -128,7 +134,19 @@ export class SvgRenderer {
     this.searchDirty = true;
     this.setEdgeLabels(options.showEdgeLabels);
   }
+  setFlowAnimation(edges: readonly DirectedFlowEdge[]): void {
+    if (this.destroyed) return;
+    const paths = edges.flatMap((edge) => {
+      const path = this.edgeElements.get(edge.key)?.path;
+      return path === undefined ? [] : [{ ...edge, path }];
+    });
+    this.motionController.play(paths);
+  }
+  stopFlowAnimation(): void {
+    this.motionController.stop();
+  }
   clear(): void {
+    this.motionController.stop();
     this.edgesGroup.replaceChildren();
     this.nodesGroup.replaceChildren();
     this.edgeElements.clear();
@@ -231,6 +249,7 @@ export class SvgRenderer {
   destroy(): void {
     if (this.destroyed) return;
     this.clear();
+    this.motionController.destroy();
     this.svg.remove();
     this.destroyed = true;
   }

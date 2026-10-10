@@ -16,6 +16,17 @@ const run = (command, args, cwd) => {
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `${command} failed`);
 };
 
+async function allocatePort() {
+  const server = createServer();
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("Could not allocate a local port.");
+  server.close();
+  await once(server, "close");
+  return address.port;
+}
+
 if (!npmCli) throw new Error("npm_execpath is unavailable; run this script through npm.");
 
 let temporaryDirectory;
@@ -99,9 +110,16 @@ try {
   );
 
   const vanilla = join(temporaryDirectory, "vanilla");
+  const vanillaPort = await allocatePort();
   const preview = spawn(
     process.execPath,
-    [join(root, "node_modules", "vite", "bin", "vite.js"), "--host", "127.0.0.1", "--port", "4179"],
+    [
+      join(root, "node_modules", "vite", "bin", "vite.js"),
+      "--host",
+      "127.0.0.1",
+      "--port",
+      String(vanillaPort),
+    ],
     { cwd: vanilla, stdio: "ignore" },
   );
   previews.push(preview);
@@ -113,7 +131,7 @@ try {
     const poll = () => {
       const request = createServer();
       request.close();
-      fetch("http://127.0.0.1:4179/")
+      fetch(`http://127.0.0.1:${vanillaPort}/`)
         .then(() => {
           clearTimeout(deadline);
           resolveReady();
@@ -124,7 +142,7 @@ try {
   });
   const browser = await chromium.launch();
   const page = await browser.newPage();
-  await page.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:${vanillaPort}/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => globalThis.__lineageViewerConsumerReady === true);
   if (
     (await page.locator("lineage-viewer").count()) !== 1 ||
@@ -134,9 +152,16 @@ try {
   )
     throw new Error("Vanilla consumer did not render the expected SVG nodes.");
 
+  const reactPort = await allocatePort();
   const reactPreview = spawn(
     process.execPath,
-    [join(root, "node_modules", "vite", "bin", "vite.js"), "--host", "127.0.0.1", "--port", "4180"],
+    [
+      join(root, "node_modules", "vite", "bin", "vite.js"),
+      "--host",
+      "127.0.0.1",
+      "--port",
+      String(reactPort),
+    ],
     { cwd: reactDomain, stdio: "ignore" },
   );
   previews.push(reactPreview);
@@ -146,7 +171,7 @@ try {
       15_000,
     );
     const poll = () => {
-      fetch("http://127.0.0.1:4180/")
+      fetch(`http://127.0.0.1:${reactPort}/`)
         .then(() => {
           clearTimeout(deadline);
           resolveReady();
@@ -156,7 +181,7 @@ try {
     poll();
   });
   const reactPage = await browser.newPage();
-  await reactPage.goto("http://127.0.0.1:4180/", { waitUntil: "networkidle" });
+  await reactPage.goto(`http://127.0.0.1:${reactPort}/`, { waitUntil: "networkidle" });
   const node = reactPage.locator("lineage-viewer .node").first();
   await node.click();
   await reactPage.waitForFunction(() =>

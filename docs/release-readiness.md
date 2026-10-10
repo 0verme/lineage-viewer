@@ -11,6 +11,6 @@ Before publishing a release, run this checklist from a clean working tree. Phase
 - [ ] Run `npm run test:package` to build, pack, install, typecheck, build, and browser-smoke-test temporary consumers.
 - [ ] Run `npm run pack:check` and `npm pack --dry-run`; confirm the root package and both workspace packages are packable, include their JavaScript, declarations, `README.md`, and `package.json` (plus root `LICENSE` and `NOTICE`), and exclude private/reference/test/report/cache/site artifacts.
 - [ ] Manually inspect all three tarball file lists and verify package files contain no absolute or repository-external paths.
-- [ ] Confirm the release workflow publishes all three public npm packages with the same tag and dist-tag; do not commit registry credentials.
+- [ ] Confirm the release workflow packs all three public npm packages, preflights Registry versions and integrity, and publishes them in the fixed order with the same tag and dist-tag; do not commit registry credentials.
 - [ ] Run `git diff --check` and `git status --short`; remove generated tarballs, consumer `node_modules`, and temporary artifacts.
 - [ ] Run the Pages/site build check appropriate to the repository workflow before enabling or publishing Pages.

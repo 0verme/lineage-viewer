@@ -43,9 +43,15 @@ requireText(siteConfig, 'base: "./"', "site configuration");
 requireText(release, "tags:", "release workflow");
 requireText(release, '"v*"', "release workflow");
 requireText(release, "id-token: write", "release workflow");
-requireText(release, "npm publish --provenance", "release workflow");
-requireText(release, "npm publish --workspace @lineage-viewer/domain-adapter", "release workflow");
-requireText(release, "npm publish --workspace @lineage-viewer/react", "release workflow");
+requireText(release, "environment: npm", "release workflow");
+if ((release.match(/node-version: 22\.14\.0/gu) ?? []).length !== 3)
+  throw new Error("Release workflow must use Node 22.14.0 for every release job.");
+if ((release.match(/npm install --global npm@11\.5\.1/gu) ?? []).length !== 2)
+  throw new Error("Verify and publish jobs must pin npm CLI 11.5.1.");
+requireText(release, "npm run release:publish", "release workflow");
+requireText(release, "--dry-run", "release workflow");
+if (release.includes("npm publish --workspace"))
+  throw new Error("Release workflow must publish through the resumable package coordinator.");
 requireText(release, "npm run pack:check", "release workflow");
 requireText(release, "github.event_name == 'push'", "release workflow");
 
@@ -63,6 +69,7 @@ for (const script of [
   "test:adapter-sqlglot",
   "lint:adapter-sqlglot",
   "test:workflows",
+  "release:publish",
 ]) {
   if (!packageJson.scripts[script]) throw new Error(`Missing package script ${script}.`);
 }

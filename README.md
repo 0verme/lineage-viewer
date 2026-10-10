@@ -49,10 +49,10 @@ lineage-viewer 专注于：
 
 ## 快速开始
 
-已发布到 npm，可直接安装：
+源码当前准备发布 `1.1.0`；确认该版本已出现在官方 npm Registry 后，再固定版本安装：
 
 ```sh
-npm install lineage-viewer
+npm install --save-exact lineage-viewer@1.1.0
 ```
 
 ```html
@@ -65,7 +65,7 @@ import "lineage-viewer/define";
 
 ## 项目状态
 
-当前稳定版本为 `1.1.0`。公开 Schema、导出类型、组件属性、方法和事件遵循语义化版本；破坏性变更只在新的主版本中发布。
+当前源码版本为 `1.1.0`；公开 Schema、导出类型、组件属性、方法和事件遵循语义化版本；破坏性变更只在新的主版本中发布。
 
 ## 在线演示
 
@@ -94,7 +94,7 @@ import "lineage-viewer/define";
 从 npm 安装：
 
 ```sh
-npm install lineage-viewer
+npm install --save-exact lineage-viewer@1.1.0
 ```
 
 ```html

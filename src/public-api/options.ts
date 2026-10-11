@@ -1,6 +1,7 @@
 import type { ValidationMode } from "../schema/types.js";
 
 export type LineageViewMode = "table" | "column" | "mixed";
+export type FlowAnimationMode = "off" | "selection";
 
 export interface LineageViewerOptions {
   direction?: "LR" | "RL" | "TB" | "BT";
@@ -15,6 +16,7 @@ export interface LineageViewerOptions {
   nodeGap?: number;
   highlightMode?: "connected" | "both" | "upstream" | "downstream" | "none";
   viewMode?: LineageViewMode;
+  flowAnimation?: FlowAnimationMode;
 }
 
 export interface ResolvedLineageViewerOptions {
@@ -30,6 +32,7 @@ export interface ResolvedLineageViewerOptions {
   readonly nodeGap: number;
   readonly highlightMode: "connected" | "both" | "upstream" | "downstream" | "none";
   readonly viewMode: LineageViewMode;
+  readonly flowAnimation: FlowAnimationMode;
 }
 
 export const defaultLineageViewerOptions: ResolvedLineageViewerOptions = {
@@ -45,6 +48,7 @@ export const defaultLineageViewerOptions: ResolvedLineageViewerOptions = {
   nodeGap: 32,
   highlightMode: "connected",
   viewMode: "mixed",
+  flowAnimation: "off",
 };
 
 export function resolveOptions(
@@ -77,6 +81,10 @@ export function resolveOptions(
       ? values["highlightMode"]
       : current.highlightMode,
     viewMode: isViewMode(values["viewMode"]) ? values["viewMode"] : current.viewMode,
+    flowAnimation:
+      values["flowAnimation"] === "off" || values["flowAnimation"] === "selection"
+        ? values["flowAnimation"]
+        : current.flowAnimation,
   };
 }
 

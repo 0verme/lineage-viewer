@@ -18,6 +18,7 @@ lineage-viewer is an embeddable data lineage viewer built with native Web Compon
 - Column lineage
 - Mixed lineage
 - Field dependency tracing
+- Optional selection-triggered Lineage Flow motion (off by default)
 - SVG rendering
 - Shadow DOM isolation
 - Zero framework dependency
@@ -32,8 +33,9 @@ Column edges can carry `passthrough`, `rename`, `transform`, or `aggregate` meta
 - [Table lineage](https://lineage.overme.cn/demo.html?id=simple-pipeline&lang=en)
 - [Column lineage](https://lineage.overme.cn/demo.html?id=column-basic&lang=en)
 - [Transformation](https://lineage.overme.cn/demo.html?id=column-transform&lang=en)
+- [Lineage Flow motion](https://lineage.overme.cn/demo.html?id=lineage-flow&lang=en) — try table/field-level upstream and downstream particle tracing.
 
-Each demo exposes its input JSON, field selection, path highlighting, diagnostics, and component events.
+Each demo exposes its input JSON, field selection, path highlighting, diagnostics, and component events. Lineage Flow explains lineage relationships; it does not indicate live job execution.
 
 ## Why lineage-viewer
 
@@ -209,7 +211,7 @@ See the [column lineage guide](docs/column-lineage.md) and runnable examples:
 
 ## Web Component properties
 
-All inputs are JavaScript properties; no HTML attributes are observed or synchronized. Reading `options` returns a resolved read-only snapshot; setting it accepts a partial options patch. Defaults include `direction: "LR"`, `validationMode: "lenient"`, `highlightMode: "connected"`, and `viewMode: "mixed"`. `selectedNodeId`, `selectedField`, and `searchResults` are read-only.
+All inputs are JavaScript properties; no HTML attributes are observed or synchronized. Reading `options` returns a resolved read-only snapshot; setting it accepts a partial options patch. Defaults include `direction: "LR"`, `validationMode: "lenient"`, `highlightMode: "connected"`, `viewMode: "mixed"`, and `flowAnimation: "off"`. `selectedNodeId`, `selectedField`, and `searchResults` are read-only.
 
 ## JavaScript API
 
@@ -222,6 +224,12 @@ The component dispatches bubbling, composed `CustomEvent`s including `lineage-no
 ## Highlighting and interaction
 
 Mouse-wheel zoom is anchored at the pointer; drag blank canvas to pan. Clicking a node or field selects it and emits events; clicking blank canvas clears selection. `highlightMode` accepts `connected`, `both`, `upstream`, `downstream`, or `none`.
+
+### Lineage Flow motion
+
+Motion is off by default. Explicitly opt in with `viewer.setOptions({ flowAnimation: "selection" })`; selecting a node or field plays one short particle pass over the highlighted lineage subgraph. Enabling motion or changing `highlightMode` with an existing selection also plays the newly selected paths. `downstream` follows edge direction, `upstream` travels against it, and `both` / `connected` spreads outward from the selection. The animation does not loop; clear the selection before selecting again to replay it. Turn motion off with `{ flowAnimation: "off" }`.
+
+The effect reuses existing SVG edge paths and does not change layout or lineage data. It describes lineage relationships, not live data transfer or job state. Each viewer animates at most 48 paths and 48 particles; larger selections retain static highlighting. Motion stops for `prefers-reduced-motion`, hidden pages, cleared selections, data or layout changes, disconnection, and destruction. Try the [Lineage Flow demo](https://lineage.overme.cn/demo.html?id=lineage-flow&lang=en).
 
 ## Strict and lenient modes
 

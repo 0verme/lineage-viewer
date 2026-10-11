@@ -19,7 +19,7 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
   await expect(page.locator("lineage-viewer .column-edge")).toHaveCount(5);
   await expect(page.locator(".showcase-copy")).toContainText("Column transformations");
   const cards = page.locator("#demos article");
-  await expect(cards).toHaveCount(10);
+  await expect(cards).toHaveCount(11);
   await expect(cards.first()).toContainText("nodes");
   await expect(
     cards.getByRole("heading", { name: "Basic column lineage", exact: true }),
@@ -30,7 +30,10 @@ test("gallery provides real viewer cards and stable demo navigation", async ({ p
   await expect(
     cards.getByRole("heading", { name: "Mixed table and column lineage", exact: true }),
   ).toBeVisible();
-  await cards.nth(6).getByRole("link", { name: "Open demo" }).click();
+  await expect(
+    cards.getByRole("heading", { name: "Lineage Flow animation", exact: true }),
+  ).toBeVisible();
+  await page.locator('#demos a[href="demo.html?id=warehouse-layers&lang=en"]').click();
   await expect(page).toHaveURL(/demo\.html\?id=warehouse-layers/);
   await expect(page.locator("lineage-viewer .node")).toHaveCount(20);
   expect(errors).toEqual([]);

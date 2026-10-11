@@ -11,7 +11,7 @@ export type {
   LineageViewerEventDetailMap,
 } from "./events.js";
 export { defaultLineageViewerOptions, resolveOptions } from "./options.js";
-export type { LineageViewerOptions, LineageViewMode } from "./options.js";
+export type { FlowAnimationMode, LineageViewerOptions, LineageViewMode } from "./options.js";
 export type {
   LineageFieldLocation,
   LineageFieldSearchResult,

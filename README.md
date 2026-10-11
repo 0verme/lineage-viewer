@@ -18,6 +18,7 @@ lineage-viewer 是一个轻量、无框架依赖、可嵌入的数据血缘查�
 - Column lineage
 - Mixed lineage
 - Field dependency tracing
+- Optional selection-triggered Lineage Flow motion (off by default)
 - SVG rendering
 - Shadow DOM isolation
 - Zero framework dependency
@@ -32,8 +33,9 @@ lineage-viewer 是一个轻量、无框架依赖、可嵌入的数据血缘查�
 - [Table lineage](https://lineage.overme.cn/demo.html?id=simple-pipeline)
 - [Column lineage](https://lineage.overme.cn/demo.html?id=column-basic)
 - [Transformation](https://lineage.overme.cn/demo.html?id=column-transform)
+- [Lineage Flow 动态追踪](https://lineage.overme.cn/demo.html?id=lineage-flow)：体验表级/字段级的上游与下游粒子追踪。
 
-每个 Demo 都可查看输入 JSON、点击字段、高亮路径，并检查组件派发的事件。
+每个 Demo 都可查看输入 JSON、点击字段、高亮路径，并检查组件派发的事件。Lineage Flow 仅表达血缘关系，不代表实时作业执行状态。
 
 ## Why lineage-viewer
 
@@ -155,7 +157,7 @@ defineLineageViewer();
 
 ## Web Component 属性
 
-全部为 JavaScript properties，不支持也不会同步 HTML attributes。读取 `options` 获得解析后的只读快照，写入时传入部分选项。默认值为：`direction: "LR"`、`fitOnLoad: true`、`readonly: true`、`showSelfLoops: false`、`showEdgeLabels: false`、`validationMode: "lenient"`、`nodeWidth: 180`、`nodeHeight: 72`、`layerGap: 72`、`nodeGap: 32`、`highlightMode: "connected"`。`selectedNodeId` 为只读。
+全部为 JavaScript properties，不支持也不会同步 HTML attributes。读取 `options` 获得解析后的只读快照，写入时传入部分选项。默认值为：`direction: "LR"`、`fitOnLoad: true`、`readonly: true`、`showSelfLoops: false`、`showEdgeLabels: false`、`validationMode: "lenient"`、`nodeWidth: 180`、`nodeHeight: 72`、`layerGap: 72`、`nodeGap: 32`、`highlightMode: "connected"`、`flowAnimation: "off"`。`selectedNodeId` 为只读。
 
 ## JavaScript API
 
@@ -168,6 +170,12 @@ defineLineageViewer();
 ## 高亮与交互
 
 鼠标滚轮以指针位置为锚点 zoom；空白处可拖动平移。点击节点或字段会选择并高亮血缘路径，点击字段边可检查转换详情，点击空白处会清除选择。`highlightMode` 可为 `connected`、`both`、`upstream`、`downstream` 或 `none`；可用 `fitView()`、`resetView()`、`focusNode()` 和 `focusField()` 控制视图。
+
+### Lineage Flow 动态追踪
+
+动效默认关闭。通过 `viewer.setOptions({ flowAnimation: "selection" })` 显式开启；选择节点或字段时，会沿当前高亮子图播放一次短暂的数据粒子动画。已有选择时开启动效或切换 `highlightMode`，也会立即按新路径播放。方向由 `highlightMode` 决定：`downstream` 沿边正向，`upstream` 沿边反向，`both` / `connected` 从选择点向外传播。动画完成后不会自动循环；如需重播，可先 `clearSelection()` 再选择。传入 `{ flowAnimation: "off" }` 可关闭。
+
+动效复用现有 SVG 边路径，不改变布局或血缘数据，也不代表实时数据传输/作业状态。每个 Viewer 最多动画 48 条路径和 48 个粒子；超限时保留静态高亮。系统启用 `prefers-reduced-motion`、页面隐藏、选择清除、数据或布局变化、组件断开或销毁时会停止动效。完整示例见 [Lineage Flow Demo](https://lineage.overme.cn/demo.html?id=lineage-flow)。
 
 ## 严格模式与宽松模式
 

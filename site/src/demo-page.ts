@@ -79,8 +79,11 @@ function render(current: LineageDemoDefinition): void {
       current.viewerOptions?.viewMode ?? "mixed",
       (v) => setOptions({ viewMode: v as NonNullable<LineageViewerOptions["viewMode"]> }),
     ),
-    select(t("highlight"), ["connected", "upstream", "downstream", "none"], "connected", (v) =>
-      setOptions({ highlightMode: v as NonNullable<LineageViewerOptions["highlightMode"]> }),
+    select(
+      t("highlight"),
+      ["connected", "both", "upstream", "downstream", "none"],
+      current.viewerOptions?.highlightMode ?? "connected",
+      (v) => setOptions({ highlightMode: v as NonNullable<LineageViewerOptions["highlightMode"]> }),
     ),
     checkbox(t("showEdgeLabels"), Boolean(current.viewerOptions?.showEdgeLabels), (v) =>
       setOptions({ showEdgeLabels: v }),
@@ -89,6 +92,14 @@ function render(current: LineageDemoDefinition): void {
       setOptions({ showSelfLoops: v }),
     ),
   );
+  if (current.id === "lineage-flow")
+    controls.append(
+      checkbox(
+        t("flowAnimation"),
+        current.viewerOptions?.flowAnimation === "selection",
+        (enabled) => setOptions({ flowAnimation: enabled ? "selection" : "off" }),
+      ),
+    );
   const card = element("div");
   card.className = "viewer-card demo-viewer";
   card.append(viewer);
@@ -171,8 +182,11 @@ function render(current: LineageDemoDefinition): void {
       log.splice(20);
       events.replaceChildren();
       if (!log.length) events.append(element("p", t("noEvents")));
-      for (const value of log)
-        events.append(element("div", `${value.name}: ${safeJson(value.detail)}`));
+      for (const value of log) {
+        const row = element("div", `${value.name}: ${safeJson(value.detail)}`);
+        row.className = "event";
+        events.append(row);
+      }
     }),
   );
   viewer.addEventListener("lineage-selection-change", (event) => {

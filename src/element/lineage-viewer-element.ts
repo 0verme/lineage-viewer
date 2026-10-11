@@ -10,7 +10,12 @@ import type {
   ViewportSize,
 } from "../interactions/viewport-types.js";
 import { unionBounds } from "../interactions/viewport-math.js";
-import { createLayeredRenderScene, type RenderScene, SvgRenderer } from "../render/index.js";
+import {
+  createLayeredRenderScene,
+  getDirectedFlowEdges,
+  type RenderScene,
+  SvgRenderer,
+} from "../render/index.js";
 import type { LineageDiagnostic, LineageEdge, LineageGraphData } from "../schema/index.js";
 import {
   defaultLineageViewerOptions,
@@ -106,7 +111,7 @@ export class LineageViewerElement extends ElementBase {
     if (this.state === "destroyed") return;
     this.ensureInitialized();
     this.observe();
-    this.process(false);
+    this.process(false, true);
   }
   disconnectedCallback(): void {
     this.stopObserving();
@@ -114,6 +119,7 @@ export class LineageViewerElement extends ElementBase {
   }
   setData(data: LineageGraphData | null): void {
     if (this.state === "destroyed") return;
+    this.renderer?.stopFlowAnimation();
     this.input = data;
     this.process(true);
   }
@@ -131,9 +137,12 @@ export class LineageViewerElement extends ElementBase {
       previous.layerGap !== this.resolvedOptions.layerGap ||
       previous.nodeGap !== this.resolvedOptions.nodeGap;
     const viewModeChanged = previous.viewMode !== this.resolvedOptions.viewMode;
+    const flowOptionsChanged =
+      previous.flowAnimation !== this.resolvedOptions.flowAnimation ||
+      previous.highlightMode !== this.resolvedOptions.highlightMode;
     if (viewModeChanged && this.resolvedOptions.viewMode === "table")
       this.updateFieldSelection(null, "api");
-    if (normalizationChanged) this.process(true);
+    if (normalizationChanged) this.process(true, flowOptionsChanged);
     else if ((layoutChanged || viewModeChanged) && this.initialized) this.renderCurrent(true);
     else if (
       previous.fitOnLoad !== this.resolvedOptions.fitOnLoad &&
@@ -144,6 +153,7 @@ export class LineageViewerElement extends ElementBase {
     else if (previous.showEdgeLabels !== this.resolvedOptions.showEdgeLabels && this.initialized)
       this.renderer?.setEdgeLabels(this.resolvedOptions.showEdgeLabels);
     this.applyInteractionState();
+    if (flowOptionsChanged && !normalizationChanged) this.applyFlowAnimation();
   }
   getDiagnostics(): readonly LineageDiagnostic[] {
     return [...this.diagnostics];
@@ -267,7 +277,7 @@ export class LineageViewerElement extends ElementBase {
     this.renderer.svg.addEventListener("click", this.onClick);
     this.initialized = true;
   }
-  private process(emitEvents: boolean): void {
+  private process(emitEvents: boolean, animateSelection = false): void {
     if (this.state === "destroyed") return;
     if (this.input === null) {
       this.graph = null;
@@ -292,6 +302,7 @@ export class LineageViewerElement extends ElementBase {
       this.updateFieldSelection(null, "data");
     this.refreshSearch();
     this.renderCurrent(true);
+    if (animateSelection) this.applyFlowAnimation();
     if (emitEvents && this.isConnected) this.emitDiagnostics();
     this.dispatchReadyIfPossible();
   }
@@ -301,6 +312,7 @@ export class LineageViewerElement extends ElementBase {
   }
   private renderCurrent(newScene: boolean): void {
     if (!this.initialized || this.renderer === null) return;
+    this.renderer.stopFlowAnimation();
     this.root.querySelector(".state")?.remove();
     this.scene = null;
     this.viewGraph = null;
@@ -349,6 +361,19 @@ export class LineageViewerElement extends ElementBase {
       ),
     );
   }
+  private applyFlowAnimation(): void {
+    if (this.resolvedOptions.flowAnimation !== "selection") {
+      this.renderer?.stopFlowAnimation();
+      return;
+    }
+    const edges = getDirectedFlowEdges(
+      this.viewGraph,
+      this.selectedId,
+      this.selectedFieldRef,
+      this.resolvedOptions.highlightMode,
+    );
+    this.renderer?.setFlowAnimation(edges);
+  }
   private refreshSearch(): void {
     this.currentSearchResults =
       this.fieldSearchKeyword === null
@@ -377,6 +402,7 @@ export class LineageViewerElement extends ElementBase {
     this.selectedId = next;
     this.selectedFieldRef = null;
     this.applyInteractionState();
+    this.applyFlowAnimation();
     const node = next === null ? null : (this.graph?.nodeById.get(next) ?? null);
     this.emitSelectionChange(
       previousSelectedNodeId,
@@ -401,6 +427,7 @@ export class LineageViewerElement extends ElementBase {
     this.selectedId = null;
     this.selectedFieldRef = next;
     this.applyInteractionState();
+    this.applyFlowAnimation();
     const match = next === null ? null : this.findField(next);
     this.emitSelectionChange(
       previousSelectedNodeId,
